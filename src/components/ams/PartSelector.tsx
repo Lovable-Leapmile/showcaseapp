@@ -44,7 +44,7 @@ export const PartSelector = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4">
-        <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
+        <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto scrollbar-thin">
           {parts.map((part) => (
             <div
               key={part.id}
