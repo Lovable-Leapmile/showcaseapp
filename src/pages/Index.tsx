@@ -94,29 +94,8 @@ const Index = () => {
 
         {/* Instructions */}
         <Card>
-          <CardHeader className="pb-3 sm:pb-6">
-            <CardTitle className="text-lg sm:text-xl">How to Use</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
-              <div>
-                <h4 className="font-semibold mb-2">Retrieving Parts:</h4>
-                <ol className="list-decimal list-inside space-y-1 text-gray-600">
-                  <li>Select a part from the available parts list</li>
-                  <li>Click "Retrieve Part" to start the robot operation</li>
-                  <li>The robot will place the part in the first available station</li>
-                </ol>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Releasing Parts:</h4>
-                <ol className="list-decimal list-inside space-y-1 text-gray-600">
-                  <li>Select an occupied station from the station control</li>
-                  <li>Click "Release Part" to return it to storage</li>
-                  <li>The robot will move the part back to storage</li>
-                </ol>
-              </div>
-            </div>
-          </CardContent>
+          
+          
         </Card>
       </div>
     </div>;
