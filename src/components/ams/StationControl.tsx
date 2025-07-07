@@ -10,6 +10,7 @@ interface StationControlProps {
   selectedStation: Station | null;
   onStationSelect: (station: Station) => void;
   onRelease: (station: Station) => void;
+  onClearAll: () => void;
   robotStatus: string;
 }
 
@@ -18,6 +19,7 @@ export const StationControl = ({
   selectedStation, 
   onStationSelect, 
   onRelease, 
+  onClearAll,
   robotStatus 
 }: StationControlProps) => {
   const occupiedStations = stations.filter(station => station.occupied);
@@ -29,6 +31,16 @@ export const StationControl = ({
           Station Control
           <Badge variant="secondary">{occupiedStations.length}/5 occupied</Badge>
         </CardTitle>
+        {occupiedStations.length > 0 && (
+          <Button 
+            onClick={onClearAll}
+            disabled={robotStatus !== 'idle'}
+            variant="outline"
+            className="w-full"
+          >
+            {robotStatus !== 'idle' ? 'Robot Busy...' : 'Clear All Stations'}
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2 max-h-64 overflow-y-auto">

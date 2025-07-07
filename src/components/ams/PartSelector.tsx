@@ -3,21 +3,27 @@ import { Part } from '@/types/ams';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PartSelectorProps {
   parts: Part[];
   selectedPart: Part | null;
+  searchTerm: string;
   onPartSelect: (part: Part) => void;
   onRetrieve: (part: Part) => void;
+  onSearchChange: (term: string) => void;
   robotStatus: string;
 }
 
 export const PartSelector = ({ 
   parts, 
   selectedPart, 
+  searchTerm,
   onPartSelect, 
   onRetrieve, 
+  onSearchChange,
   robotStatus 
 }: PartSelectorProps) => {
   return (
@@ -27,6 +33,15 @@ export const PartSelector = ({
           Available Parts
           <Badge variant="secondary" className="text-xs">{parts.length} available</Badge>
         </CardTitle>
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Search parts..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-8"
+          />
+        </div>
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4">
         <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
@@ -73,7 +88,9 @@ export const PartSelector = ({
 
         {parts.length === 0 && (
           <div className="text-center py-6 sm:py-8 text-gray-500">
-            <div className="text-xs sm:text-sm">No parts available in storage</div>
+            <div className="text-xs sm:text-sm">
+              {searchTerm ? 'No parts match your search' : 'No parts available in storage'}
+            </div>
           </div>
         )}
       </CardContent>

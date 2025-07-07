@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Part, Station, RobotOperation, StorageLocation } from '@/types/ams';
 import { toast } from '@/hooks/use-toast';
 
@@ -9,6 +9,25 @@ const INITIAL_PARTS: Part[] = [
   { id: '3', name: 'Housing Unit', type: 'structural', color: 'bg-gray-500', description: 'Aluminum housing' },
   { id: '4', name: 'Sensor Module', type: 'electronic', color: 'bg-purple-500', description: 'Temperature sensor' },
   { id: '5', name: 'Motor Unit', type: 'mechanical', color: 'bg-red-500', description: 'Stepper motor' },
+  { id: '6', name: 'Power Supply', type: 'electronic', color: 'bg-yellow-500', description: '12V power supply' },
+  { id: '7', name: 'Heat Sink', type: 'thermal', color: 'bg-indigo-500', description: 'Aluminum heat sink' },
+  { id: '8', name: 'Bearing Set', type: 'mechanical', color: 'bg-pink-500', description: 'Precision bearings' },
+  { id: '9', name: 'Control Panel', type: 'interface', color: 'bg-cyan-500', description: 'User interface panel' },
+  { id: '10', name: 'Cable Harness', type: 'wiring', color: 'bg-orange-500', description: 'Multi-wire harness' },
+  { id: '11', name: 'Filter Unit', type: 'filtration', color: 'bg-teal-500', description: 'Air filter assembly' },
+  { id: '12', name: 'Valve Assembly', type: 'hydraulic', color: 'bg-rose-500', description: 'Pressure control valve' },
+  { id: '13', name: 'Display Screen', type: 'interface', color: 'bg-lime-500', description: 'LCD display unit' },
+  { id: '14', name: 'Pump Unit', type: 'hydraulic', color: 'bg-amber-500', description: 'Hydraulic pump' },
+  { id: '15', name: 'Cooling Fan', type: 'thermal', color: 'bg-emerald-500', description: 'Cooling system fan' },
+  { id: '16', name: 'Encoder Disk', type: 'mechanical', color: 'bg-violet-500', description: 'Position encoder' },
+  { id: '17', name: 'Junction Box', type: 'electrical', color: 'bg-sky-500', description: 'Electrical junction' },
+  { id: '18', name: 'Pressure Gauge', type: 'instrument', color: 'bg-fuchsia-500', description: 'Pressure measurement' },
+  { id: '19', name: 'Spring Assembly', type: 'mechanical', color: 'bg-slate-500', description: 'Compression springs' },
+  { id: '20', name: 'LED Strip', type: 'lighting', color: 'bg-red-400', description: 'RGB LED lighting' },
+  { id: '21', name: 'Transformer', type: 'electrical', color: 'bg-blue-400', description: 'Step-down transformer' },
+  { id: '22', name: 'Relay Module', type: 'electronic', color: 'bg-green-400', description: 'Control relay bank' },
+  { id: '23', name: 'Bracket Set', type: 'structural', color: 'bg-purple-400', description: 'Mounting brackets' },
+  { id: '24', name: 'Gasket Kit', type: 'sealing', color: 'bg-orange-400', description: 'Rubber gasket set' },
 ];
 
 const INITIAL_STATIONS: Station[] = [
@@ -28,6 +47,7 @@ export const useAMSSystem = () => {
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [robotStatus, setRobotStatus] = useState<'idle' | 'moving' | 'picking' | 'placing'>('idle');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const simulateRobotOperation = useCallback(async (operation: RobotOperation) => {
     setRobotStatus('moving');
@@ -167,7 +187,57 @@ export const useAMSSystem = () => {
     setSelectedStation(null);
   }, [simulateRobotOperation]);
 
-  const availableParts = storage.filter(item => item.available).map(item => item.part);
+  const clearAllStations = useCallback(async () => {
+    const occupiedStations = stations.filter(station => station.occupied);
+    
+    if (occupiedStations.length === 0) {
+      toast({
+        title: "No Stations to Clear",
+        description: "All stations are already empty.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (robotStatus !== 'idle') {
+      toast({
+        title: "Robot Busy",
+        description: "Please wait for the current operation to complete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Clearing All Stations",
+      description: `Clearing ${occupiedStations.length} occupied stations...`,
+    });
+
+    // Clear stations one by one
+    for (const station of occupiedStations) {
+      await releasePart(station);
+      // Add a small delay between operations
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    toast({
+      title: "All Stations Cleared",
+      description: "All parts have been returned to storage.",
+    });
+  }, [stations, robotStatus, releasePart]);
+
+  const availableParts = useMemo(() => {
+    const filtered = storage
+      .filter(item => item.available)
+      .map(item => item.part)
+      .filter(part => 
+        part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        part.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        part.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    return filtered;
+  }, [storage, searchTerm]);
+
   const occupiedStations = stations.filter(station => station.occupied);
 
   return {
@@ -179,9 +249,12 @@ export const useAMSSystem = () => {
     robotStatus,
     availableParts,
     occupiedStations,
+    searchTerm,
     setSelectedPart,
     setSelectedStation,
+    setSearchTerm,
     retrievePart,
     releasePart,
+    clearAllStations,
   };
 };
