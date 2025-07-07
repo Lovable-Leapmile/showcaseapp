@@ -1,3 +1,4 @@
+
 export interface Part {
   id: string;
   name: string;
@@ -28,4 +29,10 @@ export interface StorageLocation {
   id: string;
   part: Part;
   available: boolean;
+}
+
+export interface QueuedPart {
+  id: string;
+  part: Part;
+  timestamp: Date;
 }

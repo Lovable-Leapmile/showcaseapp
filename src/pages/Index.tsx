@@ -1,3 +1,4 @@
+
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { StationDisplay } from '@/components/ams/StationDisplay';
 import { PartSelector } from '@/components/ams/PartSelector';
@@ -5,24 +6,31 @@ import { StationControl } from '@/components/ams/StationControl';
 import { OperationLog } from '@/components/ams/OperationLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+
 const Index = () => {
   const {
     stations,
     operations,
     selectedPart,
+    selectedParts,
     selectedStation,
     robotStatus,
     availableParts,
     occupiedStations,
     searchTerm,
+    queue,
     setSelectedPart,
+    setSelectedParts,
     setSelectedStation,
     setSearchTerm,
     retrievePart,
+    retrieveMultipleParts,
     releasePart,
     clearAllStations
   } = useAMSSystem();
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-3 sm:p-6">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="text-center mb-4 sm:mb-8">
@@ -34,7 +42,7 @@ const Index = () => {
           </p>
         </div>
 
-        {/* System Status - Improved alignment and expansion */}
+        {/* System Status - Updated with queue information */}
         <Card className="mb-4 sm:mb-6">
           <CardHeader className="pb-4 sm:pb-6">
             <CardTitle className="text-xl sm:text-2xl text-center">System Status</CardTitle>
@@ -56,7 +64,28 @@ const Index = () => {
                 <div className="text-sm sm:text-base text-gray-700 font-medium">Occupied Stations</div>
                 <div className="text-xs text-gray-500 mt-1">Currently in use</div>
               </div>
-              
+              <div className="text-center p-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
+                <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">{queue.length}</div>
+                <div className="text-sm sm:text-base text-gray-700 font-medium">Queued Parts</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {queue.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 justify-center mt-2">
+                      {queue.slice(0, 3).map((item, index) => (
+                        <Badge key={item.id} variant="secondary" className="text-xs">
+                          {item.part.name}
+                        </Badge>
+                      ))}
+                      {queue.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{queue.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    'Waiting for parts'
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -66,17 +95,40 @@ const Index = () => {
           {/* Controls Section - Stack on mobile */}
           <div className="flex flex-col md:flex-row lg:flex-col gap-4 sm:gap-6">
             <div className="flex-1">
-              <PartSelector parts={availableParts} selectedPart={selectedPart} searchTerm={searchTerm} onPartSelect={setSelectedPart} onRetrieve={retrievePart} onSearchChange={setSearchTerm} robotStatus={robotStatus} />
+              <PartSelector 
+                parts={availableParts} 
+                selectedPart={selectedPart} 
+                selectedParts={selectedParts}
+                searchTerm={searchTerm} 
+                onPartSelect={setSelectedPart}
+                onPartsSelect={setSelectedParts}
+                onRetrieve={retrievePart}
+                onRetrieveMultiple={retrieveMultipleParts}
+                onSearchChange={setSearchTerm} 
+                robotStatus={robotStatus} 
+              />
             </div>
             
             <div className="flex-1">
-              <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} onClearAll={clearAllStations} robotStatus={robotStatus} />
+              <StationControl 
+                stations={stations} 
+                selectedStation={selectedStation} 
+                onStationSelect={setSelectedStation} 
+                onRelease={releasePart} 
+                onClearAll={clearAllStations} 
+                robotStatus={robotStatus} 
+              />
             </div>
           </div>
 
           {/* Station Display - Full width on mobile */}
           <div className="order-first lg:order-none lg:col-span-1">
-            
+            <StationDisplay 
+              stations={stations} 
+              selectedStation={selectedStation} 
+              onStationSelect={setSelectedStation} 
+              robotStatus={robotStatus} 
+            />
           </div>
 
           {/* Operation Log */}
@@ -84,10 +136,9 @@ const Index = () => {
             <OperationLog operations={operations} />
           </div>
         </div>
-
-        {/* Instructions */}
-        
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Part, Station, RobotOperation, StorageLocation } from '@/types/ams';
+
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { Part, Station, RobotOperation, StorageLocation, QueuedPart } from '@/types/ams';
 import { toast } from '@/hooks/use-toast';
 
 const INITIAL_PARTS: Part[] = [
@@ -44,12 +45,21 @@ export const useAMSSystem = () => {
   );
   const [operations, setOperations] = useState<RobotOperation[]>([]);
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
+  const [selectedParts, setSelectedParts] = useState<Part[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [robotStatus, setRobotStatus] = useState<'idle' | 'moving' | 'picking' | 'placing'>('idle');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [queue, setQueue] = useState<QueuedPart[]>([]);
+  const [activeOperations, setActiveOperations] = useState<Set<string>>(new Set());
 
   const simulateRobotOperation = useCallback(async (operation: RobotOperation) => {
-    setRobotStatus('moving');
+    const operationId = operation.id;
+    setActiveOperations(prev => new Set(prev).add(operationId));
+    
+    if (activeOperations.size === 0) {
+      setRobotStatus('moving');
+    }
+    
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (operation.type === 'retrieve') {
@@ -62,11 +72,68 @@ export const useAMSSystem = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
     }
     
-    setRobotStatus('idle');
-  }, []);
+    setActiveOperations(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(operationId);
+      if (newSet.size === 0) {
+        setRobotStatus('idle');
+      }
+      return newSet;
+    });
+  }, [activeOperations.size]);
+
+  const processQueue = useCallback(async () => {
+    if (queue.length === 0) return;
+    
+    const availableStation = stations.find(station => !station.occupied);
+    if (!availableStation) return;
+
+    const queuedItem = queue[0];
+    setQueue(prev => prev.slice(1));
+
+    const operation: RobotOperation = {
+      id: Date.now().toString(),
+      type: 'retrieve',
+      part: queuedItem.part,
+      station: availableStation,
+      status: 'in-progress',
+      timestamp: new Date(),
+    };
+
+    setOperations(prev => [operation, ...prev]);
+    
+    toast({
+      title: "Processing Queue",
+      description: `Retrieving ${queuedItem.part.name} from queue to ${availableStation.name}...`,
+    });
+
+    await simulateRobotOperation(operation);
+
+    setStorage(prev => prev.map(item => 
+      item.part.id === queuedItem.part.id ? { ...item, available: false } : item
+    ));
+
+    setStations(prev => prev.map(station => 
+      station.id === availableStation.id 
+        ? { ...station, occupied: true, part: queuedItem.part }
+        : station
+    ));
+
+    setOperations(prev => prev.map(op => 
+      op.id === operation.id ? { ...op, status: 'completed' } : op
+    ));
+
+    toast({
+      title: "Queue Operation Complete",
+      description: `${queuedItem.part.name} placed in ${availableStation.name}`,
+    });
+  }, [queue, stations, simulateRobotOperation]);
+
+  useEffect(() => {
+    processQueue();
+  }, [stations, queue, processQueue]);
 
   const retrievePart = useCallback(async (part: Part) => {
-    // Check if part is available in storage
     const storageItem = storage.find(item => item.part.id === part.id && item.available);
     if (!storageItem) {
       toast({
@@ -77,13 +144,18 @@ export const useAMSSystem = () => {
       return;
     }
 
-    // Find available station
     const availableStation = stations.find(station => !station.occupied);
     if (!availableStation) {
+      const queuedPart: QueuedPart = {
+        id: Date.now().toString(),
+        part,
+        timestamp: new Date(),
+      };
+      setQueue(prev => [...prev, queuedPart]);
+      
       toast({
-        title: "No Available Stations",
-        description: "All stations are currently occupied.",
-        variant: "destructive",
+        title: "Added to Queue",
+        description: `${part.name} added to queue. Will be retrieved when a station becomes available.`,
       });
       return;
     }
@@ -104,22 +176,18 @@ export const useAMSSystem = () => {
       description: `Retrieving ${part.name} to ${availableStation.name}...`,
     });
 
-    // Simulate robot operation
     await simulateRobotOperation(operation);
 
-    // Update storage
     setStorage(prev => prev.map(item => 
       item.part.id === part.id ? { ...item, available: false } : item
     ));
 
-    // Update station
     setStations(prev => prev.map(station => 
       station.id === availableStation.id 
         ? { ...station, occupied: true, part }
         : station
     ));
 
-    // Update operation status
     setOperations(prev => prev.map(op => 
       op.id === operation.id ? { ...op, status: 'completed' } : op
     ));
@@ -130,6 +198,81 @@ export const useAMSSystem = () => {
     });
 
     setSelectedPart(null);
+  }, [stations, storage, simulateRobotOperation]);
+
+  const retrieveMultipleParts = useCallback(async (parts: Part[]) => {
+    const availableParts = parts.filter(part => 
+      storage.find(item => item.part.id === part.id && item.available)
+    );
+
+    if (availableParts.length === 0) {
+      toast({
+        title: "No Parts Available",
+        description: "None of the selected parts are available in storage.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const availableStations = stations.filter(station => !station.occupied);
+    const partsToRetrieve = availableParts.slice(0, availableStations.length);
+    const partsToQueue = availableParts.slice(availableStations.length);
+
+    // Add remaining parts to queue
+    if (partsToQueue.length > 0) {
+      const queuedParts: QueuedPart[] = partsToQueue.map(part => ({
+        id: Date.now().toString() + Math.random(),
+        part,
+        timestamp: new Date(),
+      }));
+      setQueue(prev => [...prev, ...queuedParts]);
+      
+      toast({
+        title: "Parts Queued",
+        description: `${partsToQueue.length} parts added to queue. ${partsToRetrieve.length} parts will be retrieved immediately.`,
+      });
+    }
+
+    // Retrieve parts to available stations
+    for (let i = 0; i < partsToRetrieve.length; i++) {
+      const part = partsToRetrieve[i];
+      const station = availableStations[i];
+      
+      const operation: RobotOperation = {
+        id: Date.now().toString() + i,
+        type: 'retrieve',
+        part,
+        station,
+        status: 'in-progress',
+        timestamp: new Date(),
+      };
+
+      setOperations(prev => [operation, ...prev]);
+      
+      // Simulate concurrent operations
+      simulateRobotOperation(operation).then(() => {
+        setStorage(prev => prev.map(item => 
+          item.part.id === part.id ? { ...item, available: false } : item
+        ));
+
+        setStations(prev => prev.map(s => 
+          s.id === station.id 
+            ? { ...s, occupied: true, part }
+            : s
+        ));
+
+        setOperations(prev => prev.map(op => 
+          op.id === operation.id ? { ...op, status: 'completed' } : op
+        ));
+      });
+    }
+
+    toast({
+      title: "Multiple Operations Started",
+      description: `Retrieving ${partsToRetrieve.length} parts simultaneously...`,
+    });
+
+    setSelectedParts([]);
   }, [stations, storage, simulateRobotOperation]);
 
   const releasePart = useCallback(async (station: Station) => {
@@ -242,17 +385,21 @@ export const useAMSSystem = () => {
   return {
     stations,
     storage,
-    operations: operations.slice(0, 10), // Show last 10 operations
+    operations: operations.slice(0, 10),
     selectedPart,
+    selectedParts,
     selectedStation,
     robotStatus,
     availableParts,
     occupiedStations,
     searchTerm,
+    queue,
     setSelectedPart,
+    setSelectedParts,
     setSelectedStation,
     setSearchTerm,
     retrievePart,
+    retrieveMultipleParts,
     releasePart,
     clearAllStations,
   };

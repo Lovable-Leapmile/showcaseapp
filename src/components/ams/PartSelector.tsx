@@ -4,28 +4,74 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useRef, useCallback } from 'react';
 
 interface PartSelectorProps {
   parts: Part[];
   selectedPart: Part | null;
+  selectedParts: Part[];
   searchTerm: string;
   onPartSelect: (part: Part) => void;
+  onPartsSelect: (parts: Part[]) => void;
   onRetrieve: (part: Part) => void;
+  onRetrieveMultiple: (parts: Part[]) => void;
   onSearchChange: (term: string) => void;
   robotStatus: string;
 }
 
 export const PartSelector = ({ 
   parts, 
-  selectedPart, 
+  selectedPart,
+  selectedParts,
   searchTerm,
-  onPartSelect, 
+  onPartSelect,
+  onPartsSelect,
   onRetrieve, 
+  onRetrieveMultiple,
   onSearchChange,
   robotStatus 
 }: PartSelectorProps) => {
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const pressStartTime = useRef<number>(0);
+
+  const handleMouseDown = useCallback((part: Part) => {
+    pressStartTime.current = Date.now();
+    const timer = setTimeout(() => {
+      setIsSelectionMode(true);
+      onPartsSelect([part]);
+    }, 500); // 500ms for long press
+    setLongPressTimer(timer);
+  }, [onPartsSelect]);
+
+  const handleMouseUp = useCallback((part: Part) => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    
+    const pressDuration = Date.now() - pressStartTime.current;
+    if (pressDuration < 500 && !isSelectionMode) {
+      onPartSelect(part);
+    }
+  }, [longPressTimer, isSelectionMode, onPartSelect]);
+
+  const handlePartCheck = useCallback((part: Part, checked: boolean) => {
+    if (checked) {
+      onPartsSelect([...selectedParts, part]);
+    } else {
+      onPartsSelect(selectedParts.filter(p => p.id !== part.id));
+    }
+  }, [selectedParts, onPartsSelect]);
+
+  const exitSelectionMode = useCallback(() => {
+    setIsSelectionMode(false);
+    onPartsSelect([]);
+  }, [onPartsSelect]);
+
   return (
     <Card className="h-full">
       <CardHeader className="pb-3 sm:pb-6">
@@ -42,6 +88,20 @@ export const PartSelector = ({
             className="pl-8"
           />
         </div>
+        {isSelectionMode && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-blue-600">
+              {selectedParts.length} parts selected
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exitSelectionMode}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4">
         <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto scrollbar-thin">
@@ -50,13 +110,28 @@ export const PartSelector = ({
               key={part.id}
               className={cn(
                 "p-2 sm:p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
-                selectedPart?.id === part.id 
+                selectedPart?.id === part.id && !isSelectionMode
                   ? "border-blue-500 bg-blue-50" 
-                  : "border-gray-200 hover:border-gray-300"
+                  : selectedParts.some(p => p.id === part.id)
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200 hover:border-gray-300"
               )}
-              onClick={() => onPartSelect(part)}
+              onMouseDown={() => handleMouseDown(part)}
+              onMouseUp={() => handleMouseUp(part)}
+              onMouseLeave={() => {
+                if (longPressTimer) {
+                  clearTimeout(longPressTimer);
+                  setLongPressTimer(null);
+                }
+              }}
             >
               <div className="flex items-center space-x-2 sm:space-x-3">
+                {isSelectionMode && (
+                  <Checkbox
+                    checked={selectedParts.some(p => p.id === part.id)}
+                    onCheckedChange={(checked) => handlePartCheck(part, checked as boolean)}
+                  />
+                )}
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
                   <img 
                     src={part.imageUrl} 
@@ -80,7 +155,25 @@ export const PartSelector = ({
           ))}
         </div>
 
-        {selectedPart && (
+        {isSelectionMode && selectedParts.length > 0 && (
+          <div className="pt-3 sm:pt-4 border-t">
+            <div className="mb-3">
+              <div className="text-xs sm:text-sm font-medium">Selected Parts:</div>
+              <div className="text-base sm:text-lg font-bold text-green-600">
+                {selectedParts.length} parts selected
+              </div>
+            </div>
+            <Button 
+              onClick={() => onRetrieveMultiple(selectedParts)}
+              disabled={robotStatus !== 'idle' && selectedParts.length === 0}
+              className="w-full text-sm"
+            >
+              Retrieve Selected Parts
+            </Button>
+          </div>
+        )}
+
+        {!isSelectionMode && selectedPart && (
           <div className="pt-3 sm:pt-4 border-t">
             <div className="mb-3">
               <div className="text-xs sm:text-sm font-medium">Selected Part:</div>
