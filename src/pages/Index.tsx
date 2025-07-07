@@ -1,4 +1,3 @@
-
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { StationDisplay } from '@/components/ams/StationDisplay';
 import { PartSelector } from '@/components/ams/PartSelector';
@@ -6,7 +5,6 @@ import { StationControl } from '@/components/ams/StationControl';
 import { OperationLog } from '@/components/ams/OperationLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
 const Index = () => {
   const {
     stations,
@@ -19,17 +17,13 @@ const Index = () => {
     setSelectedPart,
     setSelectedStation,
     retrievePart,
-    releasePart,
+    releasePart
   } = useAMSSystem();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-3 sm:p-6">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="text-center mb-4 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            AMS Showcase Robotic System
-          </h1>
+          
           <p className="text-sm sm:text-base md:text-lg text-gray-600">
             Automated Material Storage & Station Management
           </p>
@@ -67,23 +61,11 @@ const Index = () => {
           {/* Controls Section - Stack on mobile */}
           <div className="flex flex-col md:flex-row lg:flex-col gap-4 sm:gap-6">
             <div className="flex-1">
-              <PartSelector
-                parts={availableParts}
-                selectedPart={selectedPart}
-                onPartSelect={setSelectedPart}
-                onRetrieve={retrievePart}
-                robotStatus={robotStatus}
-              />
+              <PartSelector parts={availableParts} selectedPart={selectedPart} onPartSelect={setSelectedPart} onRetrieve={retrievePart} robotStatus={robotStatus} />
             </div>
             
             <div className="flex-1">
-              <StationControl
-                stations={stations}
-                selectedStation={selectedStation}
-                onStationSelect={setSelectedStation}
-                onRelease={releasePart}
-                robotStatus={robotStatus}
-              />
+              <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} robotStatus={robotStatus} />
             </div>
           </div>
 
@@ -93,21 +75,13 @@ const Index = () => {
               <CardHeader className="pb-3 sm:pb-6">
                 <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
                   Station Layout
-                  <Badge 
-                    variant={robotStatus === 'idle' ? 'secondary' : 'default'}
-                    className="animate-pulse text-xs"
-                  >
+                  <Badge variant={robotStatus === 'idle' ? 'secondary' : 'default'} className="animate-pulse text-xs">
                     {robotStatus}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
-                <StationDisplay
-                  stations={stations}
-                  selectedStation={selectedStation}
-                  onStationSelect={setSelectedStation}
-                  robotStatus={robotStatus}
-                />
+                <StationDisplay stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} robotStatus={robotStatus} />
               </CardContent>
             </Card>
           </div>
@@ -145,8 +119,6 @@ const Index = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
