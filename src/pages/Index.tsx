@@ -1,4 +1,3 @@
-
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { StationDisplay } from '@/components/ams/StationDisplay';
 import { PartSelector } from '@/components/ams/PartSelector';
@@ -6,7 +5,6 @@ import { StationControl } from '@/components/ams/StationControl';
 import { OperationLog } from '@/components/ams/OperationLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
 const Index = () => {
   const {
     stations,
@@ -24,9 +22,7 @@ const Index = () => {
     releasePart,
     clearAllStations
   } = useAMSSystem();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-3 sm:p-6">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="text-center mb-4 sm:mb-8">
@@ -60,16 +56,7 @@ const Index = () => {
                 <div className="text-sm sm:text-base text-gray-700 font-medium">Occupied Stations</div>
                 <div className="text-xs text-gray-500 mt-1">Currently in use</div>
               </div>
-              <div className="text-center p-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
-                <div className="flex items-center justify-center mb-2">
-                  <div className={`w-4 h-4 rounded-full mr-2 ${robotStatus === 'idle' ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
-                  <div className="text-xl sm:text-2xl font-bold text-purple-600">
-                    {robotStatus.charAt(0).toUpperCase() + robotStatus.slice(1)}
-                  </div>
-                </div>
-                <div className="text-sm sm:text-base text-gray-700 font-medium">Robot Status</div>
-                <div className="text-xs text-gray-500 mt-1">Current operation</div>
-              </div>
+              
             </div>
           </CardContent>
         </Card>
@@ -79,44 +66,17 @@ const Index = () => {
           {/* Controls Section - Stack on mobile */}
           <div className="flex flex-col md:flex-row lg:flex-col gap-4 sm:gap-6">
             <div className="flex-1">
-              <PartSelector 
-                parts={availableParts} 
-                selectedPart={selectedPart} 
-                searchTerm={searchTerm}
-                onPartSelect={setSelectedPart} 
-                onRetrieve={retrievePart} 
-                onSearchChange={setSearchTerm}
-                robotStatus={robotStatus} 
-              />
+              <PartSelector parts={availableParts} selectedPart={selectedPart} searchTerm={searchTerm} onPartSelect={setSelectedPart} onRetrieve={retrievePart} onSearchChange={setSearchTerm} robotStatus={robotStatus} />
             </div>
             
             <div className="flex-1">
-              <StationControl 
-                stations={stations} 
-                selectedStation={selectedStation} 
-                onStationSelect={setSelectedStation} 
-                onRelease={releasePart} 
-                onClearAll={clearAllStations}
-                robotStatus={robotStatus} 
-              />
+              <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} onClearAll={clearAllStations} robotStatus={robotStatus} />
             </div>
           </div>
 
           {/* Station Display - Full width on mobile */}
           <div className="order-first lg:order-none lg:col-span-1">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Station Layout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <StationDisplay 
-                  stations={stations} 
-                  selectedStation={selectedStation} 
-                  onStationSelect={setSelectedStation} 
-                  robotStatus={robotStatus} 
-                />
-              </CardContent>
-            </Card>
+            
           </div>
 
           {/* Operation Log */}
@@ -126,34 +86,8 @@ const Index = () => {
         </div>
 
         {/* Instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>How to Use</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <h4 className="font-semibold mb-2">Retrieving Parts:</h4>
-                <ol className="list-decimal list-inside space-y-1 text-gray-600">
-                  <li>Select a part from the Available Parts list</li>
-                  <li>Click "Retrieve Part" to move it to a station</li>
-                  <li>Watch the robot simulation in action</li>
-                </ol>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Managing Stations:</h4>
-                <ol className="list-decimal list-inside space-y-1 text-gray-600">
-                  <li>Select an occupied station</li>
-                  <li>Click "Release Part" to return it to storage</li>
-                  <li>Use "Clear All Stations" to empty all stations</li>
-                </ol>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
