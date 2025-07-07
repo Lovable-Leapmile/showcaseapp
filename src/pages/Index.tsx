@@ -1,11 +1,145 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useAMSSystem } from '@/hooks/useAMSSystem';
+import { StationDisplay } from '@/components/ams/StationDisplay';
+import { PartSelector } from '@/components/ams/PartSelector';
+import { StationControl } from '@/components/ams/StationControl';
+import { OperationLog } from '@/components/ams/OperationLog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const Index = () => {
+  const {
+    stations,
+    operations,
+    selectedPart,
+    selectedStation,
+    robotStatus,
+    availableParts,
+    occupiedStations,
+    setSelectedPart,
+    setSelectedStation,
+    retrievePart,
+    releasePart,
+  } = useAMSSystem();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            AMS Showcase Robotic System
+          </h1>
+          <p className="text-lg text-gray-600">
+            Automated Material Storage & Station Management
+          </p>
+        </div>
+
+        {/* System Status */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{availableParts.length}</div>
+                <div className="text-sm text-gray-600">Parts Available</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{stations.filter(s => !s.occupied).length}</div>
+                <div className="text-sm text-gray-600">Free Stations</div>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">{occupiedStations.length}</div>
+                <div className="text-sm text-gray-600">Occupied Stations</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{operations.length}</div>
+                <div className="text-sm text-gray-600">Total Operations</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Main Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Controls */}
+          <div className="space-y-6">
+            <PartSelector
+              parts={availableParts}
+              selectedPart={selectedPart}
+              onPartSelect={setSelectedPart}
+              onRetrieve={retrievePart}
+              robotStatus={robotStatus}
+            />
+            
+            <StationControl
+              stations={stations}
+              selectedStation={selectedStation}
+              onStationSelect={setSelectedStation}
+              onRelease={releasePart}
+              robotStatus={robotStatus}
+            />
+          </div>
+
+          {/* Center Column - Station Display */}
+          <div className="lg:col-span-1">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Station Layout
+                  <Badge 
+                    variant={robotStatus === 'idle' ? 'secondary' : 'default'}
+                    className="animate-pulse"
+                  >
+                    {robotStatus}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <StationDisplay
+                  stations={stations}
+                  selectedStation={selectedStation}
+                  onStationSelect={setSelectedStation}
+                  robotStatus={robotStatus}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Operation Log */}
+          <div>
+            <OperationLog operations={operations} />
+          </div>
+        </div>
+
+        {/* Instructions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>How to Use</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <h4 className="font-semibold mb-2">Retrieving Parts:</h4>
+                <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                  <li>Select a part from the available parts list</li>
+                  <li>Click "Retrieve Part" to start the robot operation</li>
+                  <li>The robot will place the part in the first available station</li>
+                </ol>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Releasing Parts:</h4>
+                <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                  <li>Select an occupied station from the station control</li>
+                  <li>Click "Release Part" to return it to storage</li>
+                  <li>The robot will move the part back to storage</li>
+                </ol>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
