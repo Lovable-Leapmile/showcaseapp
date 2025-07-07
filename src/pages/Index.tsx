@@ -72,17 +72,8 @@ const Index = () => {
           {/* Station Display - Full width on mobile */}
           <div className="order-first lg:order-none lg:col-span-1">
             <Card className="h-full">
-              <CardHeader className="pb-3 sm:pb-6">
-                <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
-                  Station Layout
-                  <Badge variant={robotStatus === 'idle' ? 'secondary' : 'default'} className="animate-pulse text-xs">
-                    {robotStatus}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                <StationDisplay stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} robotStatus={robotStatus} />
-              </CardContent>
+              
+              
             </Card>
           </div>
 
