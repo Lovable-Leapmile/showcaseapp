@@ -57,7 +57,17 @@ export const PartSelector = ({
               onClick={() => onPartSelect(part)}
             >
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className={cn("w-3 h-3 sm:w-4 sm:h-4 rounded-full", part.color)} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
+                  <img 
+                    src={part.imageUrl} 
+                    alt={part.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop';
+                    }}
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-xs sm:text-sm truncate">{part.name}</div>
                   <div className="text-xs text-gray-500 truncate">{part.description}</div>

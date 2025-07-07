@@ -1,10 +1,10 @@
-
 export interface Part {
   id: string;
   name: string;
   type: string;
   color: string;
   description: string;
+  imageUrl: string;
 }
 
 export interface Station {
