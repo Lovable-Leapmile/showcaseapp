@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Part, RobotOperation, Station } from '@/types/ams';
 import { toast } from '@/hooks/use-toast';
@@ -48,6 +47,16 @@ export const useAMSSystem = () => {
   });
 
   const retrievePart = useCallback(async (part: Part) => {
+    // Check if queue is not empty
+    if (queue.length > 0) {
+      toast({
+        title: "Queue Not Empty",
+        description: "Please wait. There are parts in the queue. Retrieve more parts once the queue is cleared.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!isPartAvailable(part.id)) {
       toast({
         title: "Part Unavailable",
@@ -96,9 +105,19 @@ export const useAMSSystem = () => {
     });
 
     setSelectedPart(null);
-  }, [isPartAvailable, getAvailableStation, addToQueue, addOperation, executeRobotOperation, markPartUnavailable, occupyStation, updateOperationStatus]);
+  }, [queue.length, isPartAvailable, getAvailableStation, addToQueue, addOperation, executeRobotOperation, markPartUnavailable, occupyStation, updateOperationStatus]);
 
   const retrieveMultipleParts = useCallback(async (parts: Part[]) => {
+    // Check if queue is not empty
+    if (queue.length > 0) {
+      toast({
+        title: "Queue Not Empty",
+        description: "Please wait. There are parts in the queue. Retrieve more parts once the queue is cleared.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const availableParts = parts.filter(part => isPartAvailable(part.id));
 
     if (availableParts.length === 0) {
@@ -114,7 +133,7 @@ export const useAMSSystem = () => {
     const partsToRetrieve = availableParts.slice(0, availableStations.length);
     const partsToQueue = availableParts.slice(availableStations.length);
 
-    // Add remaining parts to queue
+    // Add remaining parts to queue if they exceed available stations
     if (partsToQueue.length > 0) {
       addMultipleToQueue(partsToQueue);
       
@@ -148,13 +167,15 @@ export const useAMSSystem = () => {
       });
     }
 
-    toast({
-      title: "Multiple Operations Started",
-      description: `Retrieving ${partsToRetrieve.length} parts simultaneously...`,
-    });
+    if (partsToRetrieve.length > 0) {
+      toast({
+        title: "Multiple Operations Started",
+        description: `Retrieving ${partsToRetrieve.length} parts simultaneously...`,
+      });
+    }
 
     setSelectedParts([]);
-  }, [isPartAvailable, stations, addMultipleToQueue, addOperation, executeRobotOperation, markPartUnavailable, occupyStation, updateOperationStatus]);
+  }, [queue.length, isPartAvailable, stations, addMultipleToQueue, addOperation, executeRobotOperation, markPartUnavailable, occupyStation, updateOperationStatus]);
 
   const releasePart = useCallback(async (station: Station) => {
     if (!station.occupied || !station.part) {

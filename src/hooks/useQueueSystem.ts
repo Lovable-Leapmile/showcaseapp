@@ -28,16 +28,24 @@ export const useQueueSystem = ({
       part,
       timestamp: new Date(),
     };
-    setQueue(prev => [...prev, queuedPart]);
+    setQueue(prev => {
+      const newQueue = [...prev, queuedPart];
+      console.log('Added to queue, new length:', newQueue.length);
+      return newQueue;
+    });
   }, []);
 
   const addMultipleToQueue = useCallback((parts: Part[]) => {
-    const queuedParts: QueuedPart[] = parts.map(part => ({
-      id: Date.now().toString() + Math.random(),
+    const queuedParts: QueuedPart[] = parts.map((part, index) => ({
+      id: (Date.now() + index).toString(),
       part,
       timestamp: new Date(),
     }));
-    setQueue(prev => [...prev, ...queuedParts]);
+    setQueue(prev => {
+      const newQueue = [...prev, ...queuedParts];
+      console.log('Added multiple to queue, new length:', newQueue.length);
+      return newQueue;
+    });
   }, []);
 
   const processQueue = useCallback(async () => {
@@ -47,7 +55,11 @@ export const useQueueSystem = ({
     if (!availableStation) return;
 
     const queuedItem = queue[0];
-    setQueue(prev => prev.slice(1));
+    setQueue(prev => {
+      const newQueue = prev.slice(1);
+      console.log('Processed queue item, new length:', newQueue.length);
+      return newQueue;
+    });
 
     const operation: RobotOperation = {
       id: Date.now().toString(),
@@ -77,9 +89,13 @@ export const useQueueSystem = ({
     });
   }, [queue, stations, executeRobotOperation, addOperation, updateOperationStatus, occupyStation, markPartUnavailable]);
 
+  // Process queue when stations become available
   useEffect(() => {
-    processQueue();
-  }, [stations, queue, processQueue]);
+    const availableStations = stations.filter(station => !station.occupied);
+    if (queue.length > 0 && availableStations.length > 0) {
+      processQueue();
+    }
+  }, [stations, queue.length, processQueue]);
 
   return {
     queue,

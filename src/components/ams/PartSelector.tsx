@@ -1,11 +1,10 @@
-
 import { Part } from '@/types/ams';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search } from 'lucide-react';
+import { Search, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useCallback } from 'react';
 
@@ -20,6 +19,7 @@ interface PartSelectorProps {
   onRetrieveMultiple: (parts: Part[]) => void;
   onSearchChange: (term: string) => void;
   robotStatus: string;
+  queueLength: number;
 }
 
 export const PartSelector = ({ 
@@ -32,11 +32,14 @@ export const PartSelector = ({
   onRetrieve, 
   onRetrieveMultiple,
   onSearchChange,
-  robotStatus 
+  robotStatus,
+  queueLength
 }: PartSelectorProps) => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const pressStartTime = useRef<number>(0);
+
+  const isQueueBlocked = queueLength > 0;
 
   const handleMouseDown = useCallback((part: Part) => {
     pressStartTime.current = Date.now();
@@ -102,6 +105,15 @@ export const PartSelector = ({
             </Button>
           </div>
         )}
+        
+        {isQueueBlocked && (
+          <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+            <div className="text-sm text-yellow-800">
+              Please wait. There are parts in the queue. Retrieve more parts once the queue is cleared.
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4">
         <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto scrollbar-thin">
@@ -109,15 +121,16 @@ export const PartSelector = ({
             <div
               key={part.id}
               className={cn(
-                "p-2 sm:p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
-                selectedPart?.id === part.id && !isSelectionMode
+                "p-2 sm:p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md",
+                isQueueBlocked ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+                selectedPart?.id === part.id && !isSelectionMode && !isQueueBlocked
                   ? "border-blue-500 bg-blue-50" 
                   : selectedParts.some(p => p.id === part.id)
                     ? "border-green-500 bg-green-50"
                     : "border-gray-200 hover:border-gray-300"
               )}
-              onMouseDown={() => handleMouseDown(part)}
-              onMouseUp={() => handleMouseUp(part)}
+              onMouseDown={!isQueueBlocked ? () => handleMouseDown(part) : undefined}
+              onMouseUp={!isQueueBlocked ? () => handleMouseUp(part) : undefined}
               onMouseLeave={() => {
                 if (longPressTimer) {
                   clearTimeout(longPressTimer);
@@ -126,7 +139,7 @@ export const PartSelector = ({
               }}
             >
               <div className="flex items-center space-x-2 sm:space-x-3">
-                {isSelectionMode && (
+                {isSelectionMode && !isQueueBlocked && (
                   <Checkbox
                     checked={selectedParts.some(p => p.id === part.id)}
                     onCheckedChange={(checked) => handlePartCheck(part, checked as boolean)}
@@ -155,7 +168,7 @@ export const PartSelector = ({
           ))}
         </div>
 
-        {isSelectionMode && selectedParts.length > 0 && (
+        {isSelectionMode && selectedParts.length > 0 && !isQueueBlocked && (
           <div className="pt-3 sm:pt-4 border-t">
             <div className="mb-3">
               <div className="text-xs sm:text-sm font-medium">Selected Parts:</div>
@@ -165,7 +178,7 @@ export const PartSelector = ({
             </div>
             <Button 
               onClick={() => onRetrieveMultiple(selectedParts)}
-              disabled={robotStatus !== 'idle' && selectedParts.length === 0}
+              disabled={robotStatus !== 'idle' || selectedParts.length === 0}
               className="w-full text-sm"
             >
               Retrieve Selected Parts
@@ -173,7 +186,7 @@ export const PartSelector = ({
           </div>
         )}
 
-        {!isSelectionMode && selectedPart && (
+        {!isSelectionMode && selectedPart && !isQueueBlocked && (
           <div className="pt-3 sm:pt-4 border-t">
             <div className="mb-3">
               <div className="text-xs sm:text-sm font-medium">Selected Part:</div>
