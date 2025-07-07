@@ -48,10 +48,7 @@ const Index = () => {
                 <div className="text-lg sm:text-2xl font-bold text-orange-600">{occupiedStations.length}</div>
                 <div className="text-xs sm:text-sm text-gray-600">Occupied Stations</div>
               </div>
-              <div className="text-center p-2 sm:p-4 bg-purple-50 rounded-lg">
-                <div className="text-lg sm:text-2xl font-bold text-purple-600">{operations.length}</div>
-                <div className="text-xs sm:text-sm text-gray-600">Total Operations</div>
-              </div>
+              
             </div>
           </CardContent>
         </Card>
