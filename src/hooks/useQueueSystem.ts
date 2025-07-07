@@ -93,7 +93,7 @@ export const useQueueSystem = ({
       });
     } catch (error) {
       console.error('Queue processing error:', error);
-      updateOperationStatus(operation.id, 'failed');
+      updateOperationStatus(operation.id, 'error');
     } finally {
       setIsProcessing(false);
     }
