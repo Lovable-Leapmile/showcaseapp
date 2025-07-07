@@ -38,19 +38,74 @@ export const PartSelector = ({
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const pressStartTime = useRef<number>(0);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
   const isQueueBlocked = queueLength > 0;
 
+  const handleTouchStart = useCallback((part: Part, e: React.TouchEvent) => {
+    if (isQueueBlocked) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    pressStartTime.current = Date.now();
+    
+    const timer = setTimeout(() => {
+      setIsSelectionMode(true);
+      onPartsSelect([part]);
+    }, 500);
+    setLongPressTimer(timer);
+  }, [onPartsSelect, isQueueBlocked]);
+
+  const handleTouchEnd = useCallback((part: Part, e: React.TouchEvent) => {
+    if (isQueueBlocked) return;
+    
+    e.preventDefault();
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    
+    const pressDuration = Date.now() - pressStartTime.current;
+    const touch = e.changedTouches[0];
+    const startPos = touchStartPos.current;
+    
+    // Check if touch moved significantly (drag)
+    if (startPos) {
+      const deltaX = Math.abs(touch.clientX - startPos.x);
+      const deltaY = Math.abs(touch.clientY - startPos.y);
+      if (deltaX > 10 || deltaY > 10) return; // Ignore if dragged
+    }
+    
+    if (pressDuration < 500 && !isSelectionMode) {
+      onPartSelect(part);
+    }
+    
+    touchStartPos.current = null;
+  }, [longPressTimer, isSelectionMode, onPartSelect, isQueueBlocked]);
+
+  const handleTouchCancel = useCallback(() => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    touchStartPos.current = null;
+  }, [longPressTimer]);
+
+  // Desktop mouse handlers (keeping existing functionality)
   const handleMouseDown = useCallback((part: Part) => {
+    if (isQueueBlocked) return;
     pressStartTime.current = Date.now();
     const timer = setTimeout(() => {
       setIsSelectionMode(true);
       onPartsSelect([part]);
-    }, 500); // 500ms for long press
+    }, 500);
     setLongPressTimer(timer);
-  }, [onPartsSelect]);
+  }, [onPartsSelect, isQueueBlocked]);
 
   const handleMouseUp = useCallback((part: Part) => {
+    if (isQueueBlocked) return;
+    
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
@@ -60,7 +115,7 @@ export const PartSelector = ({
     if (pressDuration < 500 && !isSelectionMode) {
       onPartSelect(part);
     }
-  }, [longPressTimer, isSelectionMode, onPartSelect]);
+  }, [longPressTimer, isSelectionMode, onPartSelect, isQueueBlocked]);
 
   const handlePartCheck = useCallback((part: Part, checked: boolean) => {
     if (checked) {
@@ -121,7 +176,7 @@ export const PartSelector = ({
             <div
               key={part.id}
               className={cn(
-                "p-2 sm:p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md",
+                "p-2 sm:p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md select-none",
                 isQueueBlocked ? "cursor-not-allowed opacity-50" : "cursor-pointer",
                 selectedPart?.id === part.id && !isSelectionMode && !isQueueBlocked
                   ? "border-blue-500 bg-blue-50" 
@@ -129,6 +184,9 @@ export const PartSelector = ({
                     ? "border-green-500 bg-green-50"
                     : "border-gray-200 hover:border-gray-300"
               )}
+              onTouchStart={!isQueueBlocked ? (e) => handleTouchStart(part, e) : undefined}
+              onTouchEnd={!isQueueBlocked ? (e) => handleTouchEnd(part, e) : undefined}
+              onTouchCancel={handleTouchCancel}
               onMouseDown={!isQueueBlocked ? () => handleMouseDown(part) : undefined}
               onMouseUp={!isQueueBlocked ? () => handleMouseUp(part) : undefined}
               onMouseLeave={() => {

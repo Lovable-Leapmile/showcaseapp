@@ -21,6 +21,7 @@ export const useQueueSystem = ({
   markPartUnavailable,
 }: UseQueueSystemProps) => {
   const [queue, setQueue] = useState<QueuedPart[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const addToQueue = useCallback((part: Part) => {
     const queuedPart: QueuedPart = {
@@ -49,10 +50,12 @@ export const useQueueSystem = ({
   }, []);
 
   const processQueue = useCallback(async () => {
-    if (queue.length === 0) return;
+    if (queue.length === 0 || isProcessing) return;
     
     const availableStation = stations.find(station => !station.occupied);
     if (!availableStation) return;
+
+    setIsProcessing(true);
 
     const queuedItem = queue[0];
     setQueue(prev => {
@@ -77,25 +80,37 @@ export const useQueueSystem = ({
       description: `Retrieving ${queuedItem.part.name} from queue to ${availableStation.name}...`,
     });
 
-    await executeRobotOperation(operation);
+    try {
+      await executeRobotOperation(operation);
 
-    markPartUnavailable(queuedItem.part.id);
-    occupyStation(availableStation.id, queuedItem.part);
-    updateOperationStatus(operation.id, 'completed');
+      markPartUnavailable(queuedItem.part.id);
+      occupyStation(availableStation.id, queuedItem.part);
+      updateOperationStatus(operation.id, 'completed');
 
-    toast({
-      title: "Queue Operation Complete",
-      description: `${queuedItem.part.name} placed in ${availableStation.name}`,
-    });
-  }, [queue, stations, executeRobotOperation, addOperation, updateOperationStatus, occupyStation, markPartUnavailable]);
+      toast({
+        title: "Queue Operation Complete",
+        description: `${queuedItem.part.name} placed in ${availableStation.name}`,
+      });
+    } catch (error) {
+      console.error('Queue processing error:', error);
+      updateOperationStatus(operation.id, 'failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [queue, stations, isProcessing, executeRobotOperation, addOperation, updateOperationStatus, occupyStation, markPartUnavailable]);
 
-  // Process queue when stations become available
+  // Process queue when stations become available or queue changes
   useEffect(() => {
     const availableStations = stations.filter(station => !station.occupied);
-    if (queue.length > 0 && availableStations.length > 0) {
-      processQueue();
+    if (queue.length > 0 && availableStations.length > 0 && !isProcessing) {
+      // Add a small delay to prevent rapid successive calls
+      const timeoutId = setTimeout(() => {
+        processQueue();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [stations, queue.length, processQueue]);
+  }, [stations, queue.length, isProcessing, processQueue]);
 
   return {
     queue,
