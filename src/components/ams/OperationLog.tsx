@@ -21,8 +21,5 @@ export const OperationLog = ({
         return 'bg-gray-500';
     }
   };
-  return <Card className="h-full">
-      
-      
-    </Card>;
+  return;
 };
