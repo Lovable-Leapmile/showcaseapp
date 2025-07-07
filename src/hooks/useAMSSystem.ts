@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { Part, RobotOperation } from '@/types/ams';
+import { Part, RobotOperation, Station } from '@/types/ams';
 import { toast } from '@/hooks/use-toast';
 import { useRobotOperations } from './useRobotOperations';
 import { useStationManager } from './useStationManager';
