@@ -1,4 +1,3 @@
-
 interface LoginResponse {
   status: string;
   status_code: number;
@@ -35,11 +34,10 @@ class AuthService {
       }
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
     const data: LoginResponse = await response.json();
+
+    // Always return the parsed data, whether success or failure
+    // The component will handle success/failure based on the status field
     return data;
   }
 

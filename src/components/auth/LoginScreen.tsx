@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,19 +63,27 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           description: `Welcome back, ${response.user_name}!`,
         });
       } else {
-        // Show specific error message based on API response
-        const errorMessage = response.message === 'invalid user' ? 'Invalid user' : 'Invalid credentials. Please try again.';
+        // Show the actual error message from the API response
         toast({
           title: "Login Failed",
-          description: errorMessage,
+          description: response.message || 'Login failed. Please try again.',
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Login error:', error);
+      
+      // Try to parse error response if it's a fetch error
+      let errorMessage = "Unable to connect to the server. Please try again.";
+      
+      if (error instanceof Error && error.message.includes('HTTP error!')) {
+        // For HTTP errors, we'll show a generic message since we can't access the response body here
+        errorMessage = "Login failed. Please check your credentials and try again.";
+      }
+      
       toast({
         title: "Login Error",
-        description: "Unable to connect to the server. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
