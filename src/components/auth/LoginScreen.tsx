@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { WelcomePopup } from './WelcomePopup';
 import { authService } from '@/services/authService';
 
 interface LoginScreenProps {
@@ -16,8 +15,6 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
-  const [welcomeUserName, setWelcomeUserName] = useState('');
 
   const handleMobileNumberChange = (value: string) => {
     // Only allow numeric input
@@ -59,24 +56,19 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           token: response.token
         });
 
-        // Show welcome popup
-        setWelcomeUserName(response.user_name);
-        setShowWelcomePopup(true);
-
-        // Auto-close popup after 4 seconds and proceed to main app
-        setTimeout(() => {
-          setShowWelcomePopup(false);
-          onLogin();
-        }, 4000);
+        // Proceed to main app immediately
+        onLogin();
 
         toast({
           title: "Login Successful",
           description: `Welcome back, ${response.user_name}!`,
         });
       } else {
+        // Show specific error message based on API response
+        const errorMessage = response.message === 'invalid user' ? 'Invalid user' : 'Invalid credentials. Please try again.';
         toast({
           title: "Login Failed",
-          description: response.message || "Invalid credentials. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -94,29 +86,29 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-sm sm:max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <div className="w-80 h-auto mx-auto mb-6 flex items-center justify-center">
+          <div className="w-60 sm:w-72 md:w-80 h-auto mx-auto mb-4 sm:mb-6 flex items-center justify-center">
             <img 
               src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/Ace-ams.png" 
               alt="AMS Logo" 
               className="w-full h-full object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to access AMS Showcase</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Welcome Back</h1>
+          <p className="text-sm sm:text-base text-gray-600">Sign in to access AMS Showcase</p>
         </div>
 
         {/* Login Form */}
         <Card className="rounded-2xl shadow-lg border-0">
           <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl">Login</CardTitle>
+            <CardTitle className="text-center text-lg sm:text-xl">Login</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="mobile">Mobile Number</Label>
+                <Label htmlFor="mobile" className="text-sm sm:text-base">Mobile Number</Label>
                 <Input
                   id="mobile"
                   type="text"
@@ -125,21 +117,21 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   placeholder="Enter your mobile number"
                   value={mobileNumber}
                   onChange={(e) => handleMobileNumberChange(e.target.value)}
-                  className="rounded-lg"
+                  className="rounded-lg text-sm sm:text-base h-10 sm:h-11"
                   required
                   disabled={isLoading}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Enter your Password</Label>
+                <Label htmlFor="password" className="text-sm sm:text-base">Enter your Password</Label>
                 <Input
                   id="password"
                   type="password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="rounded-lg"
+                  className="rounded-lg text-sm sm:text-base h-10 sm:h-11"
                   required
                   disabled={isLoading}
                 />
@@ -147,7 +139,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
               <Button
                 type="submit"
-                className="w-full rounded-lg py-3 text-base font-medium"
+                className="w-full rounded-lg py-3 text-sm sm:text-base font-medium h-10 sm:h-11"
                 disabled={isLoading || !mobileNumber || !password}
               >
                 {isLoading ? "Signing in..." : "Submit"}
@@ -156,15 +148,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           </CardContent>
         </Card>
 
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-xs sm:text-sm text-gray-500 px-4">
           <p>Enter your mobile number and password to sign in</p>
         </div>
       </div>
-
-      {/* Welcome Popup */}
-      {showWelcomePopup && (
-        <WelcomePopup userName={welcomeUserName} />
-      )}
     </div>
   );
 };

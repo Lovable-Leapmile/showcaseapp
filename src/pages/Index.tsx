@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { PartSelector } from '@/components/ams/PartSelector';
@@ -35,14 +36,9 @@ const Index = () => {
   } = useAMSSystem();
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const checkAuth = () => {
-      const isAuth = authService.isAuthenticated();
-      setIsAuthenticated(isAuth);
-      setIsLoading(false);
-    };
-
-    checkAuth();
+    // Always start with login screen - don't check for existing auth
+    setIsAuthenticated(false);
+    setIsLoading(false);
   }, []);
 
   const handleLogin = () => {

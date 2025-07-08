@@ -25,39 +25,47 @@ export const AppBar = ({ onLogout }: AppBarProps) => {
   };
 
   return (
-    <div className="w-full p-4">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4">
+    <div className="w-full p-3 sm:p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-            AMS Showcase
-          </h1>
+          {/* AMS Logo */}
+          <div className="flex items-center">
+            <div className="w-32 sm:w-40 md:w-48 h-auto">
+              <img 
+                src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/Ace-ams.png" 
+                alt="AMS Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
           
           <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 text-xs sm:text-sm"
               >
-                <LogOut className="h-4 w-4" />
-                Logout
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Confirm Logout</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-base sm:text-lg">Confirm Logout</DialogTitle>
+                <DialogDescription className="text-sm sm:text-base">
                   Are you sure you want to logout? You will be redirected to the login screen.
                 </DialogDescription>
               </DialogHeader>
-              <DialogFooter>
+              <DialogFooter className="gap-2 sm:gap-0">
                 <Button
                   variant="outline"
                   onClick={() => setIsLogoutDialogOpen(false)}
+                  className="text-sm"
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleLogoutConfirm}>
+                <Button onClick={handleLogoutConfirm} className="text-sm">
                   Logout
                 </Button>
               </DialogFooter>
