@@ -60,12 +60,14 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
-        {/* Illustration */}
+        {/* Logo */}
         <div className="text-center">
-          <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600"></div>
-            </div>
+          <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+            <img 
+              src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/Ace-ams.png" 
+              alt="AMS Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Sign in to access AMS Showcase</p>
