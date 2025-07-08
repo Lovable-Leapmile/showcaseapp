@@ -62,7 +62,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+          <div className="w-100 h-32 mx-auto mb-6 flex items-center justify-center">
             <img 
               src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/Ace-ams.png" 
               alt="AMS Logo" 
