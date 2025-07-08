@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { PartSelector } from '@/components/ams/PartSelector';
 import { StationControl } from '@/components/ams/StationControl';
@@ -8,9 +7,11 @@ import { AppBar } from '@/components/layout/AppBar';
 import { LoginScreen } from '@/components/auth/LoginScreen';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { authService } from '@/services/authService';
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Set to false for login screen testing
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   const {
     stations,
@@ -33,13 +34,36 @@ const Index = () => {
     clearAllStations
   } = useAMSSystem();
 
+  useEffect(() => {
+    // Check if user is already authenticated
+    const checkAuth = () => {
+      const isAuth = authService.isAuthenticated();
+      setIsAuthenticated(isAuth);
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
   const handleLogin = () => {
     setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
+    authService.clearUserData();
     setIsAuthenticated(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} />;

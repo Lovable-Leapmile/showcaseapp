@@ -5,56 +5,91 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { WelcomePopup } from './WelcomePopup';
+import { authService } from '@/services/authService';
 
 interface LoginScreenProps {
   onLogin: () => void;
 }
 
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
-  const [identificationNumber, setIdentificationNumber] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [welcomeUserName, setWelcomeUserName] = useState('');
 
-  const handleIdentificationChange = (value: string) => {
+  const handleMobileNumberChange = (value: string) => {
     // Only allow numeric input
     const numericValue = value.replace(/\D/g, '');
-    setIdentificationNumber(numericValue);
-    
-    // Auto-generate password (last 6 digits)
-    if (numericValue.length >= 6) {
-      setPassword(numericValue.slice(-6));
-    } else {
-      setPassword('');
-    }
+    setMobileNumber(numericValue);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!identificationNumber || identificationNumber.length < 6) {
+    if (!mobileNumber || mobileNumber.length < 10) {
       toast({
         title: "Invalid Input",
-        description: "Please enter a valid identification number (at least 6 digits).",
+        description: "Please enter a valid mobile number (at least 10 digits).",
         variant: "destructive",
       });
       return;
     }
 
-    if (!password || password.length !== 6) {
+    if (!password) {
       toast({
         title: "Invalid Password",
-        description: "Password must be exactly 6 digits.",
+        description: "Please enter your password.",
         variant: "destructive",
       });
       return;
     }
 
-    // Simulate login success
-    toast({
-      title: "Login Successful",
-      description: "Welcome to AMS Showcase!",
-    });
-    
-    onLogin();
+    setIsLoading(true);
+
+    try {
+      const response = await authService.login(mobileNumber, password);
+      
+      if (response.status === 'success') {
+        // Store user data persistently
+        authService.storeUserData({
+          user_name: response.user_name,
+          id: response.id,
+          token: response.token
+        });
+
+        // Show welcome popup
+        setWelcomeUserName(response.user_name);
+        setShowWelcomePopup(true);
+
+        // Auto-close popup after 4 seconds and proceed to main app
+        setTimeout(() => {
+          setShowWelcomePopup(false);
+          onLogin();
+        }, 4000);
+
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${response.user_name}!`,
+        });
+      } else {
+        toast({
+          title: "Login Failed",
+          description: response.message || "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login Error",
+        description: "Unable to connect to the server. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -81,50 +116,55 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="identification">Identification Number</Label>
+                <Label htmlFor="mobile">Mobile Number</Label>
                 <Input
-                  id="identification"
+                  id="mobile"
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  placeholder="Enter your identification number"
-                  value={identificationNumber}
-                  onChange={(e) => handleIdentificationChange(e.target.value)}
+                  placeholder="Enter your mobile number"
+                  value={mobileNumber}
+                  onChange={(e) => handleMobileNumberChange(e.target.value)}
                   className="rounded-lg"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Enter your Password</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Last 6 digits of mobile number"
+                  placeholder="Enter your password"
                   value={password}
-                  readOnly
-                  className="rounded-lg bg-gray-50"
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="rounded-lg"
+                  required
+                  disabled={isLoading}
                 />
-                <p className="text-xs text-gray-500">
-                  Password is automatically generated from the last 6 digits of your identification number
-                </p>
               </div>
 
               <Button
                 type="submit"
                 className="w-full rounded-lg py-3 text-base font-medium"
-                disabled={!identificationNumber || identificationNumber.length < 6}
+                disabled={isLoading || !mobileNumber || !password}
               >
-                Submit
+                {isLoading ? "Signing in..." : "Submit"}
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <div className="text-center text-sm text-gray-500">
-          <p>Enter your identification number to auto-generate your password</p>
+          <p>Enter your mobile number and password to sign in</p>
         </div>
       </div>
+
+      {/* Welcome Popup */}
+      {showWelcomePopup && (
+        <WelcomePopup userName={welcomeUserName} />
+      )}
     </div>
   );
 };
