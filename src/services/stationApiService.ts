@@ -40,7 +40,7 @@ class StationApiService {
       throw new Error('No authentication token available');
     }
 
-    const url = `${this.API_BASE_URL}/slots?tags=station&order_by_field=id&order_by_type=DESC`;
+    const url = `${this.API_BASE_URL}/slots?tags=station&order_by_field=id&order_by_type=ASC`;
     
     const response = await fetch(url, {
       method: 'GET',
