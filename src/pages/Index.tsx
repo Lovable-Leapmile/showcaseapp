@@ -144,7 +144,7 @@ const Index = () => {
 
           {/* Show System Status Button (when hidden) */}
           {!showSystemStatus && <div className="flex justify-center mb-4">
-              <Button variant="outline" size="sm" onClick={() => setShowSystemStatus(true)} className="flex items-center gap-2 bg-white shadow-sm hover:shadow-md transition-shadow">
+              <Button variant="outline" size="sm" onClick={() => setShowSystemStatus(true)} className="flex items-center gap-2 bg-white shadow-sm hover:shadow-md transition-shadow my-[18px]">
                 <Eye className="h-4 w-4" />
                 Show System Status
               </Button>
