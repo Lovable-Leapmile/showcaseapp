@@ -37,6 +37,15 @@ export const StationControl = ({
     getStationStatus 
   } = useStationApi();
 
+  // Debug logging
+  console.log('StationControl Debug:', {
+    apiStations,
+    loading,
+    error,
+    lastUpdated,
+    stationsLength: apiStations.length
+  });
+
   const occupiedStations = apiStations.filter(station => station.tray_id !== null);
 
   const handleClearAll = () => {
@@ -118,9 +127,14 @@ export const StationControl = ({
 
         {error && (
           <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-            {error}
+            Error: {error}
           </div>
         )}
+
+        {/* Debug Information */}
+        <div className="text-xs text-gray-400 bg-gray-50 p-2 rounded mt-2">
+          Debug: {apiStations.length} stations loaded, Loading: {loading.toString()}, Error: {error || 'none'}
+        </div>
 
         {occupiedStations.length > 0 && (
           <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
@@ -155,52 +169,63 @@ export const StationControl = ({
       <CardContent className="space-y-4">
         {/* Stations Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto scrollbar-thin">
-          {apiStations.map((station) => {
-            const status = getStationStatus(station);
-            return (
-              <div
-                key={station.id}
-                className={cn(
-                  "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
-                  selectedApiStation?.id === station.id 
-                    ? "border-blue-500 bg-blue-50" 
-                    : status.isOccupied 
-                      ? "border-orange-200 hover:border-orange-300 bg-orange-50" 
-                      : "border-green-200 hover:border-green-300 bg-green-50"
-                )}
-                onClick={() => setSelectedApiStation(station)}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className={cn(
-                      "w-3 h-3 rounded-full",
-                      status.isOccupied ? "bg-orange-500" : "bg-green-500"
-                    )} />
-                    <Badge 
-                      variant={status.isOccupied ? "destructive" : "secondary"}
-                      className="text-xs"
-                    >
-                      {status.isOccupied ? "Occupied" : "Free"}
-                    </Badge>
-                  </div>
-                  
-                  <div>
-                    <div className="font-semibold text-sm">{station.slot_name}</div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      {status.displayText}
+          {apiStations.length > 0 ? (
+            apiStations.map((station) => {
+              const status = getStationStatus(station);
+              return (
+                <div
+                  key={station.id}
+                  className={cn(
+                    "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
+                    selectedApiStation?.id === station.id 
+                      ? "border-blue-500 bg-blue-50" 
+                      : status.isOccupied 
+                        ? "border-orange-200 hover:border-orange-300 bg-orange-50" 
+                        : "border-green-200 hover:border-green-300 bg-green-50"
+                  )}
+                  onClick={() => setSelectedApiStation(station)}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className={cn(
+                        "w-3 h-3 rounded-full",
+                        status.isOccupied ? "bg-orange-500" : "bg-green-500"
+                      )} />
+                      <Badge 
+                        variant={status.isOccupied ? "destructive" : "secondary"}
+                        className="text-xs"
+                      >
+                        {status.isOccupied ? "Occupied" : "Free"}
+                      </Badge>
+                    </div>
+                    
+                    <div>
+                      <div className="font-semibold text-sm">{station.slot_name}</div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {status.displayText}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              {loading ? (
+                <div className="flex flex-col items-center gap-2">
+                  <RefreshCw className="w-6 h-6 animate-spin" />
+                  <span>Loading stations...</span>
+                </div>
+              ) : error ? (
+                <div className="text-red-500">
+                  Failed to load stations: {error}
+                </div>
+              ) : (
+                "No stations available"
+              )}
+            </div>
+          )}
         </div>
-
-        {apiStations.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-500">
-            No stations available
-          </div>
-        )}
 
         {/* Selected Station Actions */}
         {selectedApiStation && (

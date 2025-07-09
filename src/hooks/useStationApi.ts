@@ -12,24 +12,48 @@ export const useStationApi = () => {
   const fetchStations = useCallback(async () => {
     try {
       setError(null);
+      console.log('Fetching stations from API...');
+      
       const response = await stationApiService.fetchStations();
+      console.log('Station API Response received:', {
+        status: response.status,
+        statusbool: response.statusbool,
+        dataLength: response.data?.length || 0,
+        totalRecords: response.total_records,
+        fullResponse: response
+      });
       
       if (response.statusbool && response.data) {
         setStations(response.data);
         setLastUpdated(new Date());
-        console.log('Stations updated:', response.data.length, 'stations');
+        console.log('Stations updated successfully:', {
+          count: response.data.length,
+          stations: response.data.map(s => ({ id: s.id, name: s.slot_name, tray_id: s.tray_id }))
+        });
       } else {
-        throw new Error(response.message || 'Failed to fetch stations');
+        const errorMsg = response.message || 'Failed to fetch stations - invalid response';
+        console.error('API returned unsuccessful response:', response);
+        throw new Error(errorMsg);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch stations';
       setError(errorMessage);
-      console.error('Station fetch error:', errorMessage);
+      console.error('Station fetch error details:', {
+        error: err,
+        message: errorMessage,
+        stack: err instanceof Error ? err.stack : 'No stack trace'
+      });
       
       if (errorMessage.includes('401') || errorMessage.includes('authentication')) {
         toast({
           title: "Authentication Error",
           description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Station Data Error",
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -40,16 +64,22 @@ export const useStationApi = () => {
 
   // Initial fetch
   useEffect(() => {
+    console.log('useStationApi: Initial fetch triggered');
     fetchStations();
   }, [fetchStations]);
 
   // Set up polling every 3 seconds
   useEffect(() => {
+    console.log('useStationApi: Setting up 3-second polling');
     const interval = setInterval(() => {
+      console.log('useStationApi: Polling fetch triggered');
       fetchStations();
     }, 3000);
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log('useStationApi: Cleaning up polling interval');
+      clearInterval(interval);
+    };
   }, [fetchStations]);
 
   const getStationStatus = (station: StationSlot) => {
@@ -61,6 +91,13 @@ export const useStationApi = () => {
       statusColor: station.tray_id ? 'occupied' : 'available'
     };
   };
+
+  console.log('useStationApi hook state:', {
+    stationsCount: stations.length,
+    loading,
+    error,
+    lastUpdated: lastUpdated?.toISOString()
+  });
 
   return {
     stations,
