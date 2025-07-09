@@ -26,6 +26,7 @@ interface EnhancedPartSelectorProps {
   onSearchChange: (term: string) => void;
   robotStatus: string;
   queueLength: number;
+  onLogApiRetrieve?: (partId: string, trayId: string) => void;
 }
 
 interface PartItemProps {
@@ -142,7 +143,8 @@ export const EnhancedPartSelector = ({
   onRetrieveMultiple,
   onSearchChange,
   robotStatus,
-  queueLength
+  queueLength,
+  onLogApiRetrieve
 }: EnhancedPartSelectorProps) => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
@@ -210,6 +212,11 @@ export const EnhancedPartSelector = ({
       const result = await response.json();
       console.log('Retrieve API Response:', result);
 
+      // Log the retrieve operation
+      if (onLogApiRetrieve) {
+        onLogApiRetrieve(selectedPartDetails.item_id, selectedPartDetails.tray_id);
+      }
+
       toast({
         title: "Tray Retrieved Successfully",
         description: `Tray ${selectedPartDetails.tray_id} has been retrieved to a station`,
@@ -231,7 +238,7 @@ export const EnhancedPartSelector = ({
     } finally {
       setIsRetrieving(false);
     }
-  }, [selectedPartDetails, refetch]);
+  }, [selectedPartDetails, refetch, onLogApiRetrieve]);
 
   const handleTouchStart = useCallback((part: Part, e: React.TouchEvent) => {
     if (isQueueBlocked) return;

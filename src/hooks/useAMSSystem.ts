@@ -46,6 +46,32 @@ export const useAMSSystem = () => {
     markPartUnavailable,
   });
 
+  // New method to log API retrieve operations
+  const logApiRetrieveOperation = useCallback((partId: string, trayId: string) => {
+    const operation: RobotOperation = {
+      id: Date.now().toString(),
+      type: 'retrieve',
+      part: {
+        id: partId,
+        name: partId,
+        type: 'API Part',
+        color: 'blue',
+        description: `Tray ID: ${trayId}`,
+        imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop'
+      },
+      station: {
+        id: 'api-station',
+        name: 'Station (API)',
+        occupied: false,
+        position: { x: 0, y: 0 }
+      },
+      status: 'completed',
+      timestamp: new Date(),
+    };
+
+    addOperation(operation);
+  }, [addOperation]);
+
   const retrievePart = useCallback(async (part: Part) => {
     // Check if queue is not empty
     if (queue.length > 0) {
@@ -274,5 +300,6 @@ export const useAMSSystem = () => {
     releasePart,
     clearAllStations,
     addOperation,
+    logApiRetrieveOperation,
   };
 };

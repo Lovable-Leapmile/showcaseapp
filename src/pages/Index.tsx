@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { EnhancedPartSelector } from '@/components/ams/EnhancedPartSelector';
@@ -37,7 +36,8 @@ const Index = () => {
     retrieveMultipleParts,
     releasePart,
     clearAllStations,
-    addOperation
+    addOperation,
+    logApiRetrieveOperation
   } = useAMSSystem();
 
   // Get API station data for System Status
@@ -158,6 +158,7 @@ const Index = () => {
                   onSearchChange={setSearchTerm}
                   robotStatus={robotStatus}
                   queueLength={queue.length}
+                  onLogApiRetrieve={logApiRetrieveOperation}
                 />
               </SwipeableTabsContent>
 
