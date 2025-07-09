@@ -13,13 +13,11 @@ import { authService } from '@/services/authService';
 import { useStationApi } from '@/hooks/useStationApi';
 import { usePartsApi } from '@/hooks/usePartsApi';
 import { Eye, EyeOff } from 'lucide-react';
-
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('parts');
   const [showSystemStatus, setShowSystemStatus] = useState(true);
-  
   const {
     stations,
     operations,
@@ -44,24 +42,31 @@ const Index = () => {
   } = useAMSSystem();
 
   // Get API station data for System Status
-  const { stations: apiStations } = useStationApi();
+  const {
+    stations: apiStations
+  } = useStationApi();
   const apiOccupiedStations = apiStations.filter(station => station.tray_id !== null);
   const apiFreeStations = apiStations.filter(station => station.tray_id === null);
 
   // Get API parts data for System Status
-  const { parts: apiParts } = usePartsApi();
-  
+  const {
+    parts: apiParts
+  } = usePartsApi();
+
   // Calculate unmapped parts (parts without tray_id)
   const unmappedPartsCount = useMemo(() => {
     return apiParts.filter(part => !part.tray_id).length;
   }, [apiParts]);
-
-  const tabs = [
-    { value: 'parts', label: 'Available Parts' },
-    { value: 'stations', label: 'Station Control' },
-    { value: 'operations', label: 'Operation Log' }
-  ];
-
+  const tabs = [{
+    value: 'parts',
+    label: 'Available Parts'
+  }, {
+    value: 'stations',
+    label: 'Station Control'
+  }, {
+    value: 'operations',
+    label: 'Operation Log'
+  }];
   useEffect(() => {
     // Check for existing authentication on app load
     const checkAuth = () => {
@@ -69,36 +74,27 @@ const Index = () => {
       setIsAuthenticated(isUserAuthenticated);
       setIsLoading(false);
     };
-
     checkAuth();
   }, []);
-
   const handleLogin = () => {
     setIsAuthenticated(true);
   };
-
   const handleLogout = () => {
     authService.clearUserData();
     setIsAuthenticated(false);
   };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} />;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Fixed App Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-slate-50 to-blue-50">
         <AppBar onLogout={handleLogout} />
@@ -106,19 +102,13 @@ const Index = () => {
       
       {/* Main Content with top padding to account for fixed header */}
       <div className={`px-3 sm:px-6 ${showSystemStatus ? 'pt-20 sm:pt-24' : 'pt-16 sm:pt-20'}`}>
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 py-[8px]">
           {/* System Status with Show/Hide Toggle */}
-          {showSystemStatus && (
-            <Card className="mb-4 sm:mb-6">
+          {showSystemStatus && <Card className="mb-4 sm:mb-6">
               <CardHeader className="pb-4 sm:pb-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl sm:text-2xl">System Status</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowSystemStatus(false)}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => setShowSystemStatus(false)} className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
                     <EyeOff className="h-4 w-4" />
                     <span className="hidden sm:inline">Hide</span>
                   </Button>
@@ -150,59 +140,25 @@ const Index = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Show System Status Button (when hidden) */}
-          {!showSystemStatus && (
-            <div className="flex justify-center mb-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSystemStatus(true)}
-                className="flex items-center gap-2 bg-white shadow-sm hover:shadow-md transition-shadow"
-              >
+          {!showSystemStatus && <div className="flex justify-center mb-4">
+              <Button variant="outline" size="sm" onClick={() => setShowSystemStatus(true)} className="flex items-center gap-2 bg-white shadow-sm hover:shadow-md transition-shadow">
                 <Eye className="h-4 w-4" />
                 Show System Status
               </Button>
-            </div>
-          )}
+            </div>}
 
           {/* Enhanced Tab Navigation */}
           <div className={`${showSystemStatus ? 'min-h-[600px] sm:min-h-[700px]' : 'min-h-[calc(100vh-8rem)]'}`}>
-            <SwipeableTabs 
-              value={activeTab} 
-              onValueChange={setActiveTab}
-              tabs={tabs}
-              className="touch-none"
-            >
+            <SwipeableTabs value={activeTab} onValueChange={setActiveTab} tabs={tabs} className="touch-none">
               <SwipeableTabsContent value="parts" className="mt-0 pb-8 sm:pb-12">
-                <EnhancedPartSelector
-                  parts={availableParts}
-                  selectedPart={selectedPart}
-                  selectedParts={selectedParts}
-                  searchTerm={searchTerm}
-                  onPartSelect={setSelectedPart}
-                  onPartsSelect={setSelectedParts}
-                  onRetrieve={retrievePart}
-                  onRetrieveMultiple={retrieveMultipleParts}
-                  onSearchChange={setSearchTerm}
-                  robotStatus={robotStatus}
-                  queueLength={queue.length}
-                  onLogApiRetrieve={logApiRetrieveOperation}
-                />
+                <EnhancedPartSelector parts={availableParts} selectedPart={selectedPart} selectedParts={selectedParts} searchTerm={searchTerm} onPartSelect={setSelectedPart} onPartsSelect={setSelectedParts} onRetrieve={retrievePart} onRetrieveMultiple={retrieveMultipleParts} onSearchChange={setSearchTerm} robotStatus={robotStatus} queueLength={queue.length} onLogApiRetrieve={logApiRetrieveOperation} />
               </SwipeableTabsContent>
 
               <SwipeableTabsContent value="stations" className="mt-0 pb-8 sm:pb-12">
-                <StationControl
-                  stations={stations}
-                  selectedStation={selectedStation}
-                  onStationSelect={setSelectedStation}
-                  onRelease={releasePart}
-                  onClearAll={clearAllStations}
-                  robotStatus={robotStatus}
-                  onLogOperation={addOperation}
-                />
+                <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} onClearAll={clearAllStations} robotStatus={robotStatus} onLogOperation={addOperation} />
               </SwipeableTabsContent>
 
               <SwipeableTabsContent value="operations" className="mt-0 pb-8 sm:pb-12">
@@ -212,8 +168,6 @@ const Index = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
