@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { usePartsApi } from '@/hooks/usePartsApi';
 import { ApiPartItem } from './ApiPartItem';
+import { authService } from '@/services/authService';
+import { toast } from '@/hooks/use-toast';
 
 interface EnhancedPartSelectorProps {
   // Legacy props for backward compatibility
@@ -147,6 +149,7 @@ export const EnhancedPartSelector = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [apiSearchTerm, setApiSearchTerm] = useState<string>('');
   const [selectedApiPart, setSelectedApiPart] = useState<string | null>(null);
+  const [isRetrieving, setIsRetrieving] = useState(false);
   const pressStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
@@ -180,11 +183,55 @@ export const EnhancedPartSelector = ({
     setSelectedApiPart(selectedApiPart === partId ? null : partId);
   };
 
-  const handleRetrieve = useCallback((trayId: string) => {
-    // Refresh the parts list after successful retrieval
-    refetch();
-    setSelectedApiPart(null);
-  }, [refetch]);
+  const handleRetrieve = useCallback(async () => {
+    if (!selectedPartDetails?.tray_id) return;
+    
+    setIsRetrieving(true);
+    try {
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const url = `https://staging.qikpod.com/showcase/retrieve_tray?tray_id=${selectedPartDetails.tray_id}&required_tags=station`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Retrieve API Response:', result);
+
+      toast({
+        title: "Tray Retrieved Successfully",
+        description: `Tray ${selectedPartDetails.tray_id} has been retrieved to a station`,
+      });
+
+      // Refresh the parts list and clear selection
+      refetch();
+      setSelectedApiPart(null);
+      
+    } catch (err) {
+      console.error('Retrieve tray error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to retrieve tray';
+      
+      toast({
+        title: "Retrieve Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsRetrieving(false);
+    }
+  }, [selectedPartDetails, refetch]);
 
   const handleTouchStart = useCallback((part: Part, e: React.TouchEvent) => {
     if (isQueueBlocked) return;
@@ -354,7 +401,7 @@ export const EnhancedPartSelector = ({
                   part={part}
                   isSelected={selectedApiPart === part.item_id}
                   onClick={() => handlePartClick(part.item_id)}
-                  onRetrieve={handleRetrieve}
+                  onRetrieve={() => {}} // Remove individual retrieve functionality
                 />
               ))}
             </div>
@@ -369,61 +416,36 @@ export const EnhancedPartSelector = ({
               </div>
             </div>
           )}
+
+          {/* Selected Part Actions - Similar to Station Control */}
+          {selectedPartDetails && (
+            <div className="pt-4 border-t">
+              <div className="mb-3">
+                <div className="text-sm font-medium">Selected Part:</div>
+                <div className="text-lg font-bold text-blue-600">{selectedPartDetails.item_id}</div>
+                <div className="text-sm text-gray-600">
+                  {selectedPartDetails.tray_id ? `Tray ID: ${selectedPartDetails.tray_id}` : 'No Tray ID'}
+                </div>
+              </div>
+              
+              {selectedPartDetails.tray_id ? (
+                <Button 
+                  disabled={robotStatus !== 'idle' || isRetrieving}
+                  variant="default"
+                  className="w-full"
+                  onClick={handleRetrieve}
+                >
+                  {isRetrieving ? 'Retrieving...' : robotStatus !== 'idle' ? 'Robot Busy...' : 'Retrieve Tray'}
+                </Button>
+              ) : (
+                <div className="text-center py-2 text-gray-500 text-sm">
+                  Part has no tray assigned
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Selected Part Details - Similar to Station Control */}
-      {selectedPartDetails && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Selected Part Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
-                <img 
-                  src={selectedPartDetails.item_image || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop'}
-                  alt={selectedPartDetails.item_id}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1 space-y-2">
-                <div>
-                  <div className="font-semibold text-lg">{selectedPartDetails.item_id}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {selectedPartDetails.item_description}
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Category:</span>
-                    <Badge variant="outline" className="ml-2">
-                      {selectedPartDetails.item_category}
-                    </Badge>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Tray ID:</span>
-                    <span className="ml-2 font-medium">
-                      {selectedPartDetails.tray_id || 'No Tray ID'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {selectedPartDetails.tray_id && (
-              <div className="pt-3 border-t">
-                <ApiPartItem
-                  part={selectedPartDetails}
-                  isSelected={true}
-                  onClick={() => {}}
-                  onRetrieve={handleRetrieve}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
