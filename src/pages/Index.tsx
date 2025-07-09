@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAMSSystem } from '@/hooks/useAMSSystem';
-import { PartSelector } from '@/components/ams/PartSelector';
+import { EnhancedPartSelector } from '@/components/ams/EnhancedPartSelector';
 import { StationControl } from '@/components/ams/StationControl';
 import { OperationLog } from '@/components/ams/OperationLog';
 import { AppBar } from '@/components/layout/AppBar';
@@ -80,9 +80,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <AppBar onLogout={handleLogout} />
+      {/* Fixed App Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-slate-50 to-blue-50">
+        <AppBar onLogout={handleLogout} />
+      </div>
       
-      <div className="px-3 sm:px-6">
+      {/* Main Content with top padding to account for fixed header */}
+      <div className="pt-20 sm:pt-24 px-3 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           {/* System Status */}
           <Card className="mb-4 sm:mb-6">
@@ -130,44 +134,46 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* Swipeable Tab Navigation */}
-          <SwipeableTabs 
-            value={activeTab} 
-            onValueChange={setActiveTab}
-            tabs={tabs}
-            className="touch-pan-x"
-          >
-            <SwipeableTabsContent value="parts" className="mt-0">
-              <PartSelector
-                parts={availableParts}
-                selectedPart={selectedPart}
-                selectedParts={selectedParts}
-                searchTerm={searchTerm}
-                onPartSelect={setSelectedPart}
-                onPartsSelect={setSelectedParts}
-                onRetrieve={retrievePart}
-                onRetrieveMultiple={retrieveMultipleParts}
-                onSearchChange={setSearchTerm}
-                robotStatus={robotStatus}
-                queueLength={queue.length}
-              />
-            </SwipeableTabsContent>
+          {/* Enhanced Swipeable Tab Navigation with increased height */}
+          <div className="min-h-[600px] sm:min-h-[700px]">
+            <SwipeableTabs 
+              value={activeTab} 
+              onValueChange={setActiveTab}
+              tabs={tabs}
+              className="touch-pan-x"
+            >
+              <SwipeableTabsContent value="parts" className="mt-0 pb-8 sm:pb-12">
+                <EnhancedPartSelector
+                  parts={availableParts}
+                  selectedPart={selectedPart}
+                  selectedParts={selectedParts}
+                  searchTerm={searchTerm}
+                  onPartSelect={setSelectedPart}
+                  onPartsSelect={setSelectedParts}
+                  onRetrieve={retrievePart}
+                  onRetrieveMultiple={retrieveMultipleParts}
+                  onSearchChange={setSearchTerm}
+                  robotStatus={robotStatus}
+                  queueLength={queue.length}
+                />
+              </SwipeableTabsContent>
 
-            <SwipeableTabsContent value="stations" className="mt-0">
-              <StationControl
-                stations={stations}
-                selectedStation={selectedStation}
-                onStationSelect={setSelectedStation}
-                onRelease={releasePart}
-                onClearAll={clearAllStations}
-                robotStatus={robotStatus}
-              />
-            </SwipeableTabsContent>
+              <SwipeableTabsContent value="stations" className="mt-0 pb-8 sm:pb-12">
+                <StationControl
+                  stations={stations}
+                  selectedStation={selectedStation}
+                  onStationSelect={setSelectedStation}
+                  onRelease={releasePart}
+                  onClearAll={clearAllStations}
+                  robotStatus={robotStatus}
+                />
+              </SwipeableTabsContent>
 
-            <SwipeableTabsContent value="operations" className="mt-0">
-              <OperationLog operations={operations} />
-            </SwipeableTabsContent>
-          </SwipeableTabs>
+              <SwipeableTabsContent value="operations" className="mt-0 pb-8 sm:pb-12">
+                <OperationLog operations={operations} />
+              </SwipeableTabsContent>
+            </SwipeableTabs>
+          </div>
         </div>
       </div>
     </div>
