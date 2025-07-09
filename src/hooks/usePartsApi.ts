@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { authService } from '@/services/authService';
 
 interface ApiPart {
   item_id: string;
@@ -20,8 +21,6 @@ interface CategoryResponse {
   }>;
 }
 
-const AUTH_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjY3NjBmN2VmN2RmZWQ5ODJhNzAyYjExMyIsInVzZXJfaWQiOiI2NzYwZjdlZjdkZmVkOTgyYTcwMmIxMTAiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJpYXQiOjE3MzQzNDIxMjcsImV4cCI6MTczNDM0OTMyN30.M5PdddvQj4WY8LrJBF8K8CdlJYFMQZQdTu6cOLMiVNM';
-
 export const usePartsApi = () => {
   const [parts, setParts] = useState<ApiPart[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -30,9 +29,14 @@ export const usePartsApi = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
       const response = await fetch('https://staging.qikpod.com/showcase/items/category_list', {
         headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -60,6 +64,11 @@ export const usePartsApi = () => {
     setError(null);
     
     try {
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
       let url = 'https://staging.qikpod.com/showcase/items?order_by_field=updated_at&order_by_type=ASC';
       
       if (category && category !== 'All Categories') {
@@ -68,7 +77,7 @@ export const usePartsApi = () => {
 
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
