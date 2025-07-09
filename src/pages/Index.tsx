@@ -7,15 +7,18 @@ import { AppBar } from '@/components/layout/AppBar';
 import { LoginScreen } from '@/components/auth/LoginScreen';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { SwipeableTabs, SwipeableTabsContent } from '@/components/ui/swipeable-tabs';
 import { authService } from '@/services/authService';
 import { useStationApi } from '@/hooks/useStationApi';
 import { usePartsApi } from '@/hooks/usePartsApi';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('parts');
+  const [showSystemStatus, setShowSystemStatus] = useState(true);
   
   const {
     stations,
@@ -102,43 +105,71 @@ const Index = () => {
       </div>
       
       {/* Main Content with top padding to account for fixed header */}
-      <div className="pt-20 sm:pt-24 px-3 sm:px-6">
+      <div className={`px-3 sm:px-6 ${showSystemStatus ? 'pt-20 sm:pt-24' : 'pt-16 sm:pt-20'}`}>
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          {/* System Status - Updated to use API data */}
-          <Card className="mb-4 sm:mb-6">
-            <CardHeader className="pb-4 sm:pb-6">
-              <CardTitle className="text-xl sm:text-2xl text-center">System Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                <div className="text-center p-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-2">{apiParts.length}</div>
-                  <div className="text-sm sm:text-base text-gray-700 font-medium">Parts Available</div>
-                  <div className="text-xs text-gray-500 mt-1">Ready for retrieval</div>
+          {/* System Status with Show/Hide Toggle */}
+          {showSystemStatus && (
+            <Card className="mb-4 sm:mb-6">
+              <CardHeader className="pb-4 sm:pb-6">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl sm:text-2xl">System Status</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowSystemStatus(false)}
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                  >
+                    <EyeOff className="h-4 w-4" />
+                    <span className="hidden sm:inline">Hide</span>
+                  </Button>
                 </div>
-                <div className="text-center p-4 sm:p-6 bg-green-50 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">{apiFreeStations.length}</div>
-                  <div className="text-sm sm:text-base text-gray-700 font-medium">Free Stations</div>
-                  <div className="text-xs text-gray-500 mt-1">Available for use</div>
-                </div>
-                <div className="text-center p-4 sm:p-6 bg-orange-50 rounded-xl border-2 border-orange-100 hover:border-orange-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-orange-600 mb-2">{apiOccupiedStations.length}</div>
-                  <div className="text-sm sm:text-base text-gray-700 font-medium">Occupied Stations</div>
-                  <div className="text-xs text-gray-500 mt-1">Currently in use</div>
-                </div>
-                <div className="text-center p-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">{unmappedPartsCount}</div>
-                  <div className="text-sm sm:text-base text-gray-700 font-medium">Unmapped Parts</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {unmappedPartsCount > 0 ? 'Parts without tray mapping' : 'All parts mapped to trays'}
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="text-center p-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-2">{apiParts.length}</div>
+                    <div className="text-sm sm:text-base text-gray-700 font-medium">Parts Available</div>
+                    <div className="text-xs text-gray-500 mt-1">Ready for retrieval</div>
+                  </div>
+                  <div className="text-center p-4 sm:p-6 bg-green-50 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">{apiFreeStations.length}</div>
+                    <div className="text-sm sm:text-base text-gray-700 font-medium">Free Stations</div>
+                    <div className="text-xs text-gray-500 mt-1">Available for use</div>
+                  </div>
+                  <div className="text-center p-4 sm:p-6 bg-orange-50 rounded-xl border-2 border-orange-100 hover:border-orange-200 transition-colors">
+                    <div className="text-2xl sm:text-3xl font-bold text-orange-600 mb-2">{apiOccupiedStations.length}</div>
+                    <div className="text-sm sm:text-base text-gray-700 font-medium">Occupied Stations</div>
+                    <div className="text-xs text-gray-500 mt-1">Currently in use</div>
+                  </div>
+                  <div className="text-center p-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
+                    <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">{unmappedPartsCount}</div>
+                    <div className="text-sm sm:text-base text-gray-700 font-medium">Unmapped Parts</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {unmappedPartsCount > 0 ? 'Parts without tray mapping' : 'All parts mapped to trays'}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Enhanced Tab Navigation - Removed swipe functionality */}
-          <div className="min-h-[600px] sm:min-h-[700px]">
+          {/* Show System Status Button (when hidden) */}
+          {!showSystemStatus && (
+            <div className="flex justify-center mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSystemStatus(true)}
+                className="flex items-center gap-2 bg-white shadow-sm hover:shadow-md transition-shadow"
+              >
+                <Eye className="h-4 w-4" />
+                Show System Status
+              </Button>
+            </div>
+          )}
+
+          {/* Enhanced Tab Navigation */}
+          <div className={`${showSystemStatus ? 'min-h-[600px] sm:min-h-[700px]' : 'min-h-[calc(100vh-8rem)]'}`}>
             <SwipeableTabs 
               value={activeTab} 
               onValueChange={setActiveTab}
