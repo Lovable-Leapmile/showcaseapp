@@ -165,6 +165,12 @@ export const EnhancedPartSelector = ({
     );
   }, [apiParts, apiSearchTerm]);
 
+  // Get selected part details
+  const selectedPartDetails = useMemo(() => {
+    if (!selectedApiPart) return null;
+    return filteredApiParts.find(part => part.item_id === selectedApiPart);
+  }, [selectedApiPart, filteredApiParts]);
+
   const handleCategoryChange = useCallback((category: string) => {
     setSelectedCategory(category);
     fetchParts(category);
@@ -267,102 +273,157 @@ export const EnhancedPartSelector = ({
   }, [onPartsSelect]);
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3 sm:pb-6">
-        <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
-          Available Parts
-          <Badge variant="secondary" className="text-xs">{filteredApiParts.length} available</Badge>
-        </CardTitle>
-        
-        {/* Search and Filter Row */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search parts..."
-              value={apiSearchTerm}
-              onChange={(e) => setApiSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          <div className="w-full sm:w-48">
-            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {isSelectionMode && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-blue-600">
-              {selectedParts.length} parts selected
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exitSelectionMode}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
-        
-        {isQueueBlocked && (
-          <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-            <div className="text-sm text-yellow-800">
-              Please wait. There are parts in the queue. Retrieve more parts once the queue is cleared.
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-            <div className="text-sm text-red-800">{error}</div>
-          </div>
-        )}
-      </CardHeader>
-      
-      <CardContent className="space-y-3 sm:space-y-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2 text-sm text-gray-600">Loading parts...</span>
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-64 sm:max-h-80 overflow-y-auto scrollbar-thin">
-            {filteredApiParts.map((part) => (
-              <ApiPartItem
-                key={part.item_id}
-                part={part}
-                isSelected={selectedApiPart === part.item_id}
-                onClick={() => handlePartClick(part.item_id)}
-                onRetrieve={handleRetrieve}
+    <div className="space-y-4">
+      <Card className="h-full">
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
+            Available Parts
+            <Badge variant="secondary" className="text-xs">{filteredApiParts.length} available</Badge>
+          </CardTitle>
+          
+          {/* Search and Filter Row */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search parts..."
+                value={apiSearchTerm}
+                onChange={(e) => setApiSearchTerm(e.target.value)}
+                className="pl-8"
               />
-            ))}
-          </div>
-        )}
-
-        {!isLoading && filteredApiParts.length === 0 && (
-          <div className="text-center py-6 sm:py-8 text-gray-500">
-            <div className="text-xs sm:text-sm">
-              {apiSearchTerm || selectedCategory !== 'All Categories' 
-                ? 'No parts match your search criteria' 
-                : 'No parts available'}
+            </div>
+            <div className="w-full sm:w-48">
+              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {isSelectionMode && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-blue-600">
+                {selectedParts.length} parts selected
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exitSelectionMode}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+          
+          {isQueueBlocked && (
+            <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+              <div className="text-sm text-yellow-800">
+                Please wait. There are parts in the queue. Retrieve more parts once the queue is cleared.
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+              <div className="text-sm text-red-800">{error}</div>
+            </div>
+          )}
+        </CardHeader>
+        
+        <CardContent className="space-y-3 sm:space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2 text-sm text-gray-600">Loading parts...</span>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 sm:max-h-80 overflow-y-auto scrollbar-thin">
+              {filteredApiParts.map((part) => (
+                <ApiPartItem
+                  key={part.item_id}
+                  part={part}
+                  isSelected={selectedApiPart === part.item_id}
+                  onClick={() => handlePartClick(part.item_id)}
+                  onRetrieve={handleRetrieve}
+                />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && filteredApiParts.length === 0 && (
+            <div className="text-center py-6 sm:py-8 text-gray-500">
+              <div className="text-xs sm:text-sm">
+                {apiSearchTerm || selectedCategory !== 'All Categories' 
+                  ? 'No parts match your search criteria' 
+                  : 'No parts available'}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Selected Part Details - Similar to Station Control */}
+      {selectedPartDetails && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Selected Part Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
+                <img 
+                  src={selectedPartDetails.item_image || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop'}
+                  alt={selectedPartDetails.item_id}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <div>
+                  <div className="font-semibold text-lg">{selectedPartDetails.item_id}</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {selectedPartDetails.item_description}
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Category:</span>
+                    <Badge variant="outline" className="ml-2">
+                      {selectedPartDetails.item_category}
+                    </Badge>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Tray ID:</span>
+                    <span className="ml-2 font-medium">
+                      {selectedPartDetails.tray_id || 'No Tray ID'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {selectedPartDetails.tray_id && (
+              <div className="pt-3 border-t">
+                <ApiPartItem
+                  part={selectedPartDetails}
+                  isSelected={true}
+                  onClick={() => {}}
+                  onRetrieve={handleRetrieve}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { EnhancedPartSelector } from '@/components/ams/EnhancedPartSelector';
 import { StationControl } from '@/components/ams/StationControl';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { SwipeableTabs, SwipeableTabsContent } from '@/components/ui/swipeable-tabs';
 import { authService } from '@/services/authService';
 import { useStationApi } from '@/hooks/useStationApi';
+import { usePartsApi } from '@/hooks/usePartsApi';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,6 +44,14 @@ const Index = () => {
   const { stations: apiStations } = useStationApi();
   const apiOccupiedStations = apiStations.filter(station => station.tray_id !== null);
   const apiFreeStations = apiStations.filter(station => station.tray_id === null);
+
+  // Get API parts data for System Status
+  const { parts: apiParts } = usePartsApi();
+  
+  // Calculate unmapped parts (parts without tray_id)
+  const unmappedPartsCount = useMemo(() => {
+    return apiParts.filter(part => !part.tray_id).length;
+  }, [apiParts]);
 
   const tabs = [
     { value: 'parts', label: 'Available Parts' },
@@ -103,7 +112,7 @@ const Index = () => {
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <div className="text-center p-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-2">{availableParts.length}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-2">{apiParts.length}</div>
                   <div className="text-sm sm:text-base text-gray-700 font-medium">Parts Available</div>
                   <div className="text-xs text-gray-500 mt-1">Ready for retrieval</div>
                 </div>
@@ -118,36 +127,23 @@ const Index = () => {
                   <div className="text-xs text-gray-500 mt-1">Currently in use</div>
                 </div>
                 <div className="text-center p-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">{queue.length}</div>
-                  <div className="text-sm sm:text-base text-gray-700 font-medium">Queued Parts</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">{unmappedPartsCount}</div>
+                  <div className="text-sm sm:text-base text-gray-700 font-medium">Unmapped Parts</div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {queue.length > 0 ? (
-                      <div className="flex flex-wrap gap-1 justify-center mt-2">
-                        {queue.slice(0, 3).map((item, index) => (
-                          <Badge key={item.id} variant="secondary" className="text-xs">
-                            {item.part.name}
-                          </Badge>
-                        ))}
-                        {queue.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{queue.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    ) : 'Waiting for parts'}
+                    {unmappedPartsCount > 0 ? 'Parts without tray mapping' : 'All parts mapped to trays'}
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Enhanced Swipeable Tab Navigation with increased height */}
+          {/* Enhanced Tab Navigation - Removed swipe functionality */}
           <div className="min-h-[600px] sm:min-h-[700px]">
             <SwipeableTabs 
               value={activeTab} 
               onValueChange={setActiveTab}
               tabs={tabs}
-              className="touch-pan-x"
+              className="touch-none"
             >
               <SwipeableTabsContent value="parts" className="mt-0 pb-8 sm:pb-12">
                 <EnhancedPartSelector
