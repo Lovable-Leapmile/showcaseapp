@@ -8,11 +8,13 @@ import { AppBar } from '@/components/layout/AppBar';
 import { LoginScreen } from '@/components/auth/LoginScreen';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { SwipeableTabs, SwipeableTabsContent } from '@/components/ui/swipeable-tabs';
 import { authService } from '@/services/authService';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('parts');
   
   const {
     stations,
@@ -35,10 +37,21 @@ const Index = () => {
     clearAllStations
   } = useAMSSystem();
 
+  const tabs = [
+    { value: 'parts', label: 'Available Parts' },
+    { value: 'stations', label: 'Station Control' },
+    { value: 'operations', label: 'Operation Log' }
+  ];
+
   useEffect(() => {
-    // Always start with login screen - don't check for existing auth
-    setIsAuthenticated(false);
-    setIsLoading(false);
+    // Check for existing authentication on app load
+    const checkAuth = () => {
+      const isUserAuthenticated = authService.isAuthenticated();
+      setIsAuthenticated(isUserAuthenticated);
+      setIsLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   const handleLogin = () => {
@@ -71,7 +84,7 @@ const Index = () => {
       
       <div className="px-3 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          {/* System Status - Updated with queue information */}
+          {/* System Status */}
           <Card className="mb-4 sm:mb-6">
             <CardHeader className="pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl text-center">System Status</CardTitle>
@@ -117,43 +130,44 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* Main Layout - Stack on mobile, grid on desktop */}
-          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Controls Section - Stack on mobile */}
-            <div className="flex flex-col md:flex-row lg:flex-col gap-4 sm:gap-6">
-              <div className="flex-1">
-                <PartSelector
-                  parts={availableParts}
-                  selectedPart={selectedPart}
-                  selectedParts={selectedParts}
-                  searchTerm={searchTerm}
-                  onPartSelect={setSelectedPart}
-                  onPartsSelect={setSelectedParts}
-                  onRetrieve={retrievePart}
-                  onRetrieveMultiple={retrieveMultipleParts}
-                  onSearchChange={setSearchTerm}
-                  robotStatus={robotStatus}
-                  queueLength={queue.length}
-                />
-              </div>
-              
-              <div className="flex-1">
-                <StationControl
-                  stations={stations}
-                  selectedStation={selectedStation}
-                  onStationSelect={setSelectedStation}
-                  onRelease={releasePart}
-                  onClearAll={clearAllStations}
-                  robotStatus={robotStatus}
-                />
-              </div>
-            </div>
+          {/* Swipeable Tab Navigation */}
+          <SwipeableTabs 
+            value={activeTab} 
+            onValueChange={setActiveTab}
+            tabs={tabs}
+            className="touch-pan-x"
+          >
+            <SwipeableTabsContent value="parts" className="mt-0">
+              <PartSelector
+                parts={availableParts}
+                selectedPart={selectedPart}
+                selectedParts={selectedParts}
+                searchTerm={searchTerm}
+                onPartSelect={setSelectedPart}
+                onPartsSelect={setSelectedParts}
+                onRetrieve={retrievePart}
+                onRetrieveMultiple={retrieveMultipleParts}
+                onSearchChange={setSearchTerm}
+                robotStatus={robotStatus}
+                queueLength={queue.length}
+              />
+            </SwipeableTabsContent>
 
-            {/* Operation Log */}
-            <div className="lg:col-span-1">
+            <SwipeableTabsContent value="stations" className="mt-0">
+              <StationControl
+                stations={stations}
+                selectedStation={selectedStation}
+                onStationSelect={setSelectedStation}
+                onRelease={releasePart}
+                onClearAll={clearAllStations}
+                robotStatus={robotStatus}
+              />
+            </SwipeableTabsContent>
+
+            <SwipeableTabsContent value="operations" className="mt-0">
               <OperationLog operations={operations} />
-            </div>
-          </div>
+            </SwipeableTabsContent>
+          </SwipeableTabs>
         </div>
       </div>
     </div>
