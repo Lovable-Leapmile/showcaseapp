@@ -7,9 +7,15 @@ export interface StationSlot {
   tray_id: string | null;
   created_at: string;
   updated_at: string;
-  tags: string;
-  order_by_field?: string;
-  order_by_type?: string;
+  slot_id: string;
+  slot_status: string;
+  slot_height: number;
+  row: number;
+  rack: number;
+  slot: number;
+  depth: number;
+  tags: string[];
+  status?: string | null;
 }
 
 export interface StationApiResponse {
@@ -17,8 +23,8 @@ export interface StationApiResponse {
   status_code: number;
   message: string;
   timestamp: string;
-  data: StationSlot[];
-  total_records: number;
+  records: StationSlot[]; // Changed from 'data' to 'records'
+  count: number; // Changed from 'total_records' to 'count'
   statusbool: boolean;
   ok: boolean;
   api_processing_time: number;

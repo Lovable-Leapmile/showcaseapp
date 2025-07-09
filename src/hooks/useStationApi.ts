@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { stationApiService, StationSlot } from '@/services/stationApiService';
-import { toast } from '@/hooks/use-toast';
 
 export const useStationApi = () => {
   const [stations, setStations] = useState<StationSlot[]>([]);
@@ -18,17 +17,25 @@ export const useStationApi = () => {
       console.log('Station API Response received:', {
         status: response.status,
         statusbool: response.statusbool,
-        dataLength: response.data?.length || 0,
-        totalRecords: response.total_records,
+        recordsLength: response.records?.length || 0,
+        count: response.count,
         fullResponse: response
       });
       
-      if (response.statusbool && response.data) {
-        setStations(response.data);
-        setLastUpdated(new Date());
-        console.log('Stations updated successfully:', {
-          count: response.data.length,
-          stations: response.data.map(s => ({ id: s.id, name: s.slot_name, tray_id: s.tray_id }))
+      if (response.statusbool && response.records) {
+        // Only update state if data has actually changed
+        const newStations = response.records;
+        setStations(prevStations => {
+          // Compare if data has changed to avoid unnecessary re-renders
+          if (JSON.stringify(prevStations) !== JSON.stringify(newStations)) {
+            console.log('Stations updated successfully:', {
+              count: newStations.length,
+              stations: newStations.map(s => ({ id: s.id, name: s.slot_name, tray_id: s.tray_id }))
+            });
+            setLastUpdated(new Date());
+            return newStations;
+          }
+          return prevStations;
         });
       } else {
         const errorMsg = response.message || 'Failed to fetch stations - invalid response';
@@ -44,19 +51,7 @@ export const useStationApi = () => {
         stack: err instanceof Error ? err.stack : 'No stack trace'
       });
       
-      if (errorMessage.includes('401') || errorMessage.includes('authentication')) {
-        toast({
-          title: "Authentication Error",
-          description: "Please log in again to continue.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Station Data Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
+      // Removed toast notifications to prevent popups
     } finally {
       setLoading(false);
     }
