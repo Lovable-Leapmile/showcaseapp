@@ -63,7 +63,7 @@ export const useStationApi = () => {
     fetchStations();
   }, [fetchStations]);
 
-  // Set up polling every 3 seconds
+  // Set up polling every 3 seconds (changed from 3000ms to 3000ms)
   useEffect(() => {
     console.log('useStationApi: Setting up 3-second polling');
     const interval = setInterval(() => {

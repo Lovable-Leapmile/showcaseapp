@@ -146,10 +146,11 @@ export const EnhancedPartSelector = ({
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [apiSearchTerm, setApiSearchTerm] = useState<string>('');
+  const [selectedApiPart, setSelectedApiPart] = useState<string | null>(null);
   const pressStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
-  const { parts: apiParts, categories, isLoading, error, fetchParts } = usePartsApi();
+  const { parts: apiParts, categories, isLoading, error, fetchParts, refetch } = usePartsApi();
 
   const isQueueBlocked = queueLength > 0;
 
@@ -168,6 +169,16 @@ export const EnhancedPartSelector = ({
     setSelectedCategory(category);
     fetchParts(category);
   }, [fetchParts]);
+
+  const handlePartClick = (partId: string) => {
+    setSelectedApiPart(selectedApiPart === partId ? null : partId);
+  };
+
+  const handleRetrieve = useCallback((trayId: string) => {
+    // Refresh the parts list after successful retrieval
+    refetch();
+    setSelectedApiPart(null);
+  }, [refetch]);
 
   const handleTouchStart = useCallback((part: Part, e: React.TouchEvent) => {
     if (isQueueBlocked) return;
@@ -334,10 +345,9 @@ export const EnhancedPartSelector = ({
               <ApiPartItem
                 key={part.item_id}
                 part={part}
-                onClick={() => {
-                  // For now, we'll just show the part details - no actual selection for API parts
-                  console.log('Selected API part:', part);
-                }}
+                isSelected={selectedApiPart === part.item_id}
+                onClick={() => handlePartClick(part.item_id)}
+                onRetrieve={handleRetrieve}
               />
             ))}
           </div>
