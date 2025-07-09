@@ -273,5 +273,6 @@ export const useAMSSystem = () => {
     retrieveMultipleParts,
     releasePart,
     clearAllStations,
+    addOperation,
   };
 };

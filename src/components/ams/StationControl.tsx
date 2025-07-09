@@ -8,25 +8,31 @@ import { cn } from '@/lib/utils';
 import { useStationApi } from '@/hooks/useStationApi';
 import { StationSlot } from '@/services/stationApiService';
 import { RefreshCw, Clock, Wifi, WifiOff } from 'lucide-react';
+import { stationApiService } from '@/services/stationApiService';
+import { authService } from '@/services/authService';
+import { toast } from '@/hooks/use-toast';
 
 interface StationControlProps {
-  stations: any[]; // Keep for compatibility but will use API data
+  stations: any[];
   selectedStation: any;
   onStationSelect: (station: any) => void;
   onRelease: (station: any) => void;
   onClearAll: () => void;
   robotStatus: string;
+  onLogOperation?: (operation: any) => void;
 }
 
 export const StationControl = ({ 
   onStationSelect, 
   onRelease, 
   onClearAll,
-  robotStatus 
+  robotStatus,
+  onLogOperation
 }: StationControlProps) => {
   const [selectedApiStation, setSelectedApiStation] = useState<StationSlot | null>(null);
   const [clearAllOpen, setClearAllOpen] = useState(false);
   const [releaseOpen, setReleaseOpen] = useState(false);
+  const [releasing, setReleasing] = useState(false);
   
   const { 
     stations: apiStations, 
@@ -37,15 +43,6 @@ export const StationControl = ({
     getStationStatus 
   } = useStationApi();
 
-  // Debug logging
-  console.log('StationControl Debug:', {
-    apiStations,
-    loading,
-    error,
-    lastUpdated,
-    stationsLength: apiStations.length
-  });
-
   const occupiedStations = apiStations.filter(station => station.tray_id !== null);
 
   const handleClearAll = () => {
@@ -53,10 +50,76 @@ export const StationControl = ({
     setClearAllOpen(false);
   };
 
-  const handleRelease = () => {
-    if (selectedApiStation) {
-      // For now, just show success message - actual release would need API endpoint
-      console.log('Releasing station:', selectedApiStation.slot_name);
+  const handleRelease = async () => {
+    if (!selectedApiStation?.tray_id) return;
+    
+    setReleasing(true);
+    try {
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const url = `https://staging.qikpod.com/showcase/release_tray?tray_id=${selectedApiStation.tray_id}&tags=station`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Release API Response:', result);
+
+      // Log the operation
+      if (onLogOperation) {
+        onLogOperation({
+          id: Date.now().toString(),
+          type: 'release',
+          part: { name: `Tray ${selectedApiStation.tray_id}` },
+          station: { name: selectedApiStation.slot_name },
+          status: 'completed',
+          timestamp: new Date()
+        });
+      }
+
+      toast({
+        title: "Tray Released Successfully",
+        description: `Tray ${selectedApiStation.tray_id} has been released from ${selectedApiStation.slot_name}`,
+      });
+
+      // Refresh station data
+      refetch();
+      
+    } catch (err) {
+      console.error('Release tray error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to release tray';
+      
+      toast({
+        title: "Release Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      // Log the failed operation
+      if (onLogOperation) {
+        onLogOperation({
+          id: Date.now().toString(),
+          type: 'release',
+          part: { name: `Tray ${selectedApiStation.tray_id}` },
+          station: { name: selectedApiStation.slot_name },
+          status: 'error',
+          timestamp: new Date()
+        });
+      }
+    } finally {
+      setReleasing(false);
       setReleaseOpen(false);
       setSelectedApiStation(null);
     }
@@ -131,11 +194,6 @@ export const StationControl = ({
           </div>
         )}
 
-        {/* Debug Information */}
-        <div className="text-xs text-gray-400 bg-gray-50 p-2 rounded mt-2">
-          Debug: {apiStations.length} stations loaded, Loading: {loading.toString()}, Error: {error || 'none'}
-        </div>
-
         {occupiedStations.length > 0 && (
           <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
             <AlertDialogTrigger asChild>
@@ -167,8 +225,8 @@ export const StationControl = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Stations Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto scrollbar-thin">
+        {/* Stations Grid - Updated to 2 rows */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-96 overflow-y-auto scrollbar-thin">
           {apiStations.length > 0 ? (
             apiStations.map((station) => {
               const status = getStationStatus(station);
@@ -176,7 +234,7 @@ export const StationControl = ({
                 <div
                   key={station.id}
                   className={cn(
-                    "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
+                    "p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
                     selectedApiStation?.id === station.id 
                       ? "border-blue-500 bg-blue-50" 
                       : status.isOccupied 
@@ -187,10 +245,6 @@ export const StationControl = ({
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className={cn(
-                        "w-3 h-3 rounded-full",
-                        status.isOccupied ? "bg-orange-500" : "bg-green-500"
-                      )} />
                       <Badge 
                         variant={status.isOccupied ? "destructive" : "secondary"}
                         className="text-xs"
@@ -200,7 +254,7 @@ export const StationControl = ({
                     </div>
                     
                     <div>
-                      <div className="font-semibold text-sm">{station.slot_name}</div>
+                      <div className="font-semibold text-sm">Station {station.slot_name}</div>
                       <div className="text-xs text-gray-600 mt-1">
                         {status.displayText}
                       </div>
@@ -232,7 +286,7 @@ export const StationControl = ({
           <div className="pt-4 border-t">
             <div className="mb-3">
               <div className="text-sm font-medium">Selected Station:</div>
-              <div className="text-lg font-bold text-blue-600">{selectedApiStation.slot_name}</div>
+              <div className="text-lg font-bold text-blue-600">Station {selectedApiStation.slot_name}</div>
               <div className="text-sm text-gray-600">
                 {getStationStatus(selectedApiStation).displayText}
               </div>
@@ -242,25 +296,25 @@ export const StationControl = ({
               <AlertDialog open={releaseOpen} onOpenChange={setReleaseOpen}>
                 <AlertDialogTrigger asChild>
                   <Button 
-                    disabled={robotStatus !== 'idle'}
+                    disabled={robotStatus !== 'idle' || releasing}
                     variant="destructive"
                     className="w-full"
                   >
-                    {robotStatus !== 'idle' ? 'Robot Busy...' : 'Release Tray'}
+                    {releasing ? 'Releasing...' : robotStatus !== 'idle' ? 'Robot Busy...' : 'Release Tray'}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Release Tray</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to release "Tray ID: {selectedApiStation.tray_id}" from {selectedApiStation.slot_name}? 
+                      Are you sure you want to release "Tray ID: {selectedApiStation.tray_id}" from Station {selectedApiStation.slot_name}? 
                       The tray will be returned to storage.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleRelease} className="bg-red-600 hover:bg-red-700">
-                      Release Tray
+                      {releasing ? 'Releasing...' : 'Release Tray'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

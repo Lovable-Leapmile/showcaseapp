@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SwipeableTabs, SwipeableTabsContent } from '@/components/ui/swipeable-tabs';
 import { authService } from '@/services/authService';
+import { useStationApi } from '@/hooks/useStationApi';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,8 +35,14 @@ const Index = () => {
     retrievePart,
     retrieveMultipleParts,
     releasePart,
-    clearAllStations
+    clearAllStations,
+    addOperation
   } = useAMSSystem();
+
+  // Get API station data for System Status
+  const { stations: apiStations } = useStationApi();
+  const apiOccupiedStations = apiStations.filter(station => station.tray_id !== null);
+  const apiFreeStations = apiStations.filter(station => station.tray_id === null);
 
   const tabs = [
     { value: 'parts', label: 'Available Parts' },
@@ -88,7 +95,7 @@ const Index = () => {
       {/* Main Content with top padding to account for fixed header */}
       <div className="pt-20 sm:pt-24 px-3 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          {/* System Status */}
+          {/* System Status - Updated to use API data */}
           <Card className="mb-4 sm:mb-6">
             <CardHeader className="pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl text-center">System Status</CardTitle>
@@ -101,12 +108,12 @@ const Index = () => {
                   <div className="text-xs text-gray-500 mt-1">Ready for retrieval</div>
                 </div>
                 <div className="text-center p-4 sm:p-6 bg-green-50 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">{stations.filter(s => !s.occupied).length}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">{apiFreeStations.length}</div>
                   <div className="text-sm sm:text-base text-gray-700 font-medium">Free Stations</div>
                   <div className="text-xs text-gray-500 mt-1">Available for use</div>
                 </div>
                 <div className="text-center p-4 sm:p-6 bg-orange-50 rounded-xl border-2 border-orange-100 hover:border-orange-200 transition-colors">
-                  <div className="text-2xl sm:text-3xl font-bold text-orange-600 mb-2">{occupiedStations.length}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-orange-600 mb-2">{apiOccupiedStations.length}</div>
                   <div className="text-sm sm:text-base text-gray-700 font-medium">Occupied Stations</div>
                   <div className="text-xs text-gray-500 mt-1">Currently in use</div>
                 </div>
@@ -166,6 +173,7 @@ const Index = () => {
                   onRelease={releasePart}
                   onClearAll={clearAllStations}
                   robotStatus={robotStatus}
+                  onLogOperation={addOperation}
                 />
               </SwipeableTabsContent>
 
