@@ -1,4 +1,3 @@
-
 import { Part } from '@/types/ams';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, AlertCircle } from 'lucide-react';
+import { Search, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useCallback, useMemo } from 'react';
+import { usePartsApi } from '@/hooks/usePartsApi';
+import { ApiPartItem } from './ApiPartItem';
 
 interface EnhancedPartSelectorProps {
+  // Legacy props for backward compatibility
   parts: Part[];
   selectedPart: Part | null;
   selectedParts: Part[];
@@ -127,6 +129,7 @@ const PartItem = ({
 };
 
 export const EnhancedPartSelector = ({ 
+  // Legacy props - keeping for backward compatibility but using API data
   parts, 
   selectedPart,
   selectedParts,
@@ -141,30 +144,30 @@ export const EnhancedPartSelector = ({
 }: EnhancedPartSelectorProps) => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
+  const [apiSearchTerm, setApiSearchTerm] = useState<string>('');
   const pressStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
+  const { parts: apiParts, categories, isLoading, error, fetchParts } = usePartsApi();
+
   const isQueueBlocked = queueLength > 0;
 
-  // Get unique categories from parts
-  const categories = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(parts.map(part => part.type))).sort();
-    return [{ value: 'all', label: 'All Categories' }, ...uniqueCategories.map(cat => ({ value: cat, label: cat }))];
-  }, [parts]);
+  // Filter API parts based on search term
+  const filteredApiParts = useMemo(() => {
+    if (!apiSearchTerm) return apiParts;
+    
+    return apiParts.filter(part => 
+      part.item_id.toLowerCase().includes(apiSearchTerm.toLowerCase()) ||
+      part.item_description.toLowerCase().includes(apiSearchTerm.toLowerCase()) ||
+      part.item_category.toLowerCase().includes(apiSearchTerm.toLowerCase())
+    );
+  }, [apiParts, apiSearchTerm]);
 
-  // Filter parts based on search term and selected category
-  const filteredParts = useMemo(() => {
-    return parts.filter(part => {
-      const matchesSearch = part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           part.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           part.description.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = selectedCategory === 'all' || part.type === selectedCategory;
-      
-      return matchesSearch && matchesCategory;
-    });
-  }, [parts, searchTerm, selectedCategory]);
+  const handleCategoryChange = useCallback((category: string) => {
+    setSelectedCategory(category);
+    fetchParts(category);
+  }, [fetchParts]);
 
   const handleTouchStart = useCallback((part: Part, e: React.TouchEvent) => {
     if (isQueueBlocked) return;
@@ -257,7 +260,7 @@ export const EnhancedPartSelector = ({
       <CardHeader className="pb-3 sm:pb-6">
         <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
           Available Parts
-          <Badge variant="secondary" className="text-xs">{filteredParts.length} available</Badge>
+          <Badge variant="secondary" className="text-xs">{filteredApiParts.length} available</Badge>
         </CardTitle>
         
         {/* Search and Filter Row */}
@@ -266,20 +269,20 @@ export const EnhancedPartSelector = ({
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
               placeholder="Search parts..."
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
+              value={apiSearchTerm}
+              onChange={(e) => setApiSearchTerm(e.target.value)}
               className="pl-8"
             />
           </div>
           <div className="w-full sm:w-48">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                  <SelectItem key={category} value={category}>
+                    {category}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -310,74 +313,42 @@ export const EnhancedPartSelector = ({
             </div>
           </div>
         )}
+
+        {error && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+            <div className="text-sm text-red-800">{error}</div>
+          </div>
+        )}
       </CardHeader>
       
       <CardContent className="space-y-3 sm:space-y-4">
-        <div className="space-y-2 max-h-64 sm:max-h-80 overflow-y-auto scrollbar-thin">
-          {filteredParts.map((part) => (
-            <PartItem
-              key={part.id}
-              part={part}
-              isSelected={selectedPart?.id === part.id}
-              isMultiSelected={selectedParts.some(p => p.id === part.id)}
-              isSelectionMode={isSelectionMode}
-              isQueueBlocked={isQueueBlocked}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              onTouchCancel={handleTouchCancel}
-              onMouseDown={handleMouseDown}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={() => {
-                if (longPressTimer) {
-                  clearTimeout(longPressTimer);
-                  setLongPressTimer(null);
-                }
-              }}
-              onPartCheck={handlePartCheck}
-            />
-          ))}
-        </div>
-
-        {isSelectionMode && selectedParts.length > 0 && !isQueueBlocked && (
-          <div className="pt-3 sm:pt-4 border-t">
-            <div className="mb-3">
-              <div className="text-xs sm:text-sm font-medium">Selected Parts:</div>
-              <div className="text-base sm:text-lg font-bold text-green-600">
-                {selectedParts.length} parts selected
-              </div>
-            </div>
-            <Button 
-              onClick={() => onRetrieveMultiple(selectedParts)}
-              disabled={robotStatus !== 'idle' || selectedParts.length === 0}
-              className="w-full text-sm"
-            >
-              Retrieve Selected Parts
-            </Button>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2 text-sm text-gray-600">Loading parts...</span>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-64 sm:max-h-80 overflow-y-auto scrollbar-thin">
+            {filteredApiParts.map((part) => (
+              <ApiPartItem
+                key={part.item_id}
+                part={part}
+                onClick={() => {
+                  // For now, we'll just show the part details - no actual selection for API parts
+                  console.log('Selected API part:', part);
+                }}
+              />
+            ))}
           </div>
         )}
 
-        {!isSelectionMode && selectedPart && !isQueueBlocked && (
-          <div className="pt-3 sm:pt-4 border-t">
-            <div className="mb-3">
-              <div className="text-xs sm:text-sm font-medium">Selected Part:</div>
-              <div className="text-base sm:text-lg font-bold text-blue-600 truncate">{selectedPart.name}</div>
-            </div>
-            <Button 
-              onClick={() => onRetrieve(selectedPart)}
-              disabled={robotStatus !== 'idle'}
-              className="w-full text-sm"
-            >
-              {robotStatus !== 'idle' ? 'Robot Busy...' : 'Retrieve Part'}
-            </Button>
-          </div>
-        )}
-
-        {filteredParts.length === 0 && (
+        {!isLoading && filteredApiParts.length === 0 && (
           <div className="text-center py-6 sm:py-8 text-gray-500">
             <div className="text-xs sm:text-sm">
-              {searchTerm || selectedCategory !== 'all' 
+              {apiSearchTerm || selectedCategory !== 'All Categories' 
                 ? 'No parts match your search criteria' 
-                : 'No parts available in storage'}
+                : 'No parts available'}
             </div>
           </div>
         )}
