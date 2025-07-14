@@ -34,7 +34,7 @@ export const usePartsApi = () => {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch('https://staging.qikpod.com/showcase/items/category_list', {
+      const response = await fetch('https://dev.qikpod.com/showcase/items/category_list', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export const usePartsApi = () => {
         throw new Error('No authentication token available');
       }
 
-      let url = 'https://staging.qikpod.com/showcase/items?order_by_field=updated_at&order_by_type=ASC';
+      let url = 'https://dev.qikpod.com/showcase/items?order_by_field=updated_at&order_by_type=ASC';
       
       if (category && category !== 'All Categories') {
         url += `&item_category=${encodeURIComponent(category)}`;
