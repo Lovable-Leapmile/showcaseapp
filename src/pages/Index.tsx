@@ -13,11 +13,13 @@ import { authService } from '@/services/authService';
 import { useStationApi } from '@/hooks/useStationApi';
 import { usePartsApi } from '@/hooks/usePartsApi';
 import { Eye, EyeOff } from 'lucide-react';
+
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('parts');
   const [showSystemStatus, setShowSystemStatus] = useState(true);
+
   const {
     stations,
     operations,
@@ -41,22 +43,23 @@ const Index = () => {
     logApiRetrieveOperation
   } = useAMSSystem();
 
-  // Get API station data for System Status
+  // Get API station data for System Status - only when authenticated
   const {
     stations: apiStations
   } = useStationApi();
   const apiOccupiedStations = apiStations.filter(station => station.tray_id !== null);
   const apiFreeStations = apiStations.filter(station => station.tray_id === null);
 
-  // Get API parts data for System Status
+  // Get API parts data for System Status - only when authenticated
   const {
     parts: apiParts
-  } = usePartsApi();
+  } = usePartsApi(isAuthenticated);
 
   // Calculate unmapped parts (parts without tray_id)
   const unmappedPartsCount = useMemo(() => {
     return apiParts.filter(part => !part.tray_id).length;
   }, [apiParts]);
+
   const tabs = [{
     value: 'parts',
     label: 'Available Parts'
@@ -67,6 +70,7 @@ const Index = () => {
     value: 'operations',
     label: 'Operation Log'
   }];
+
   useEffect(() => {
     // Check for existing authentication on app load
     const checkAuth = () => {
@@ -76,13 +80,16 @@ const Index = () => {
     };
     checkAuth();
   }, []);
+
   const handleLogin = () => {
     setIsAuthenticated(true);
   };
+
   const handleLogout = () => {
     authService.clearUserData();
     setIsAuthenticated(false);
   };
+
   if (isLoading) {
     return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -91,9 +98,11 @@ const Index = () => {
         </div>
       </div>;
   }
+
   if (!isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} />;
   }
+
   return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Fixed App Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-slate-50 to-blue-50">
@@ -170,4 +179,5 @@ const Index = () => {
       </div>
     </div>;
 };
+
 export default Index;

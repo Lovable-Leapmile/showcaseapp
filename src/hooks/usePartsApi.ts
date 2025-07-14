@@ -21,17 +21,19 @@ interface CategoryResponse {
   }>;
 }
 
-export const usePartsApi = () => {
+export const usePartsApi = (enabled: boolean = true) => {
   const [parts, setParts] = useState<ApiPart[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCategories = useCallback(async () => {
+    if (!enabled) return;
+    
     try {
       const token = authService.getToken();
       if (!token) {
-        throw new Error('No authentication token available');
+        return; // Don't show error if not authenticated
       }
 
       const response = await fetch('https://dev.qikpod.com/showcase/items/category_list', {
@@ -51,22 +53,27 @@ export const usePartsApi = () => {
     } catch (err) {
       console.error('Failed to fetch categories:', err);
       setError('Failed to load categories');
-      toast({
-        title: "Error",
-        description: "Failed to load categories",
-        variant: "destructive",
-      });
+      if (enabled) {
+        toast({
+          title: "Error",
+          description: "Failed to load categories",
+          variant: "destructive",
+        });
+      }
     }
-  }, []);
+  }, [enabled]);
 
   const fetchParts = useCallback(async (category?: string) => {
+    if (!enabled) return;
+    
     setIsLoading(true);
     setError(null);
     
     try {
       const token = authService.getToken();
       if (!token) {
-        throw new Error('No authentication token available');
+        setIsLoading(false);
+        return; // Don't show error if not authenticated
       }
 
       let url = 'https://dev.qikpod.com/showcase/items?order_by_field=updated_at&order_by_type=ASC';
@@ -91,20 +98,24 @@ export const usePartsApi = () => {
     } catch (err) {
       console.error('Failed to fetch parts:', err);
       setError('Failed to load parts');
-      toast({
-        title: "Error",
-        description: "Failed to load parts",
-        variant: "destructive",
-      });
+      if (enabled) {
+        toast({
+          title: "Error",
+          description: "Failed to load parts",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
-    fetchCategories();
-    fetchParts();
-  }, [fetchCategories, fetchParts]);
+    if (enabled && authService.isAuthenticated()) {
+      fetchCategories();
+      fetchParts();
+    }
+  }, [fetchCategories, fetchParts, enabled]);
 
   return {
     parts,
