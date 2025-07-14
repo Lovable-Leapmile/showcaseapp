@@ -60,7 +60,7 @@ export const StationControl = ({
         throw new Error('No authentication token available');
       }
 
-      const url = `https://staging.qikpod.com/showcase/release_tray?tray_id=${selectedApiStation.tray_id}&tags=station`;
+      const url = `https://dev.qikpod.com/showcase/release_tray?tray_id=${selectedApiStation.tray_id}&tags=station`;
       
       const response = await fetch(url, {
         method: 'POST',
