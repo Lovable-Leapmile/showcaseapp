@@ -55,7 +55,7 @@ export const StationControl = ({
   const handleRelease = async () => {
     if (!selectedApiStation?.tray_id) return;
     
-    const stationId = selectedApiStation.id;
+    const stationId = selectedApiStation.id.toString();
     setReleasingStations(prev => new Set([...prev, stationId]));
     
     try {
@@ -243,7 +243,7 @@ export const StationControl = ({
           {apiStations.length > 0 ? (
             apiStations.map((station) => {
               const status = getStationStatus(station);
-              const isReleasing = releasingStations.has(station.id);
+              const isReleasing = releasingStations.has(station.id.toString());
               return (
                 <div
                   key={station.id}
@@ -320,11 +320,11 @@ export const StationControl = ({
               <AlertDialog open={releaseOpen} onOpenChange={setReleaseOpen}>
                 <AlertDialogTrigger asChild>
                   <Button 
-                    disabled={robotStatus !== 'idle' || releasingStations.has(selectedApiStation.id)}
+                    disabled={robotStatus !== 'idle' || releasingStations.has(selectedApiStation.id.toString())}
                     variant="destructive"
                     className="w-full"
                   >
-                    {releasingStations.has(selectedApiStation.id) ? (
+                    {releasingStations.has(selectedApiStation.id.toString()) ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
                         Releasing...
