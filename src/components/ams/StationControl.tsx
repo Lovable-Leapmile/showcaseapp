@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from '@/lib/utils';
 import { useStationApi } from '@/hooks/useStationApi';
 import { StationSlot } from '@/services/stationApiService';
-import { RefreshCw, Clock, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { RefreshCw, Clock, Wifi, WifiOff } from 'lucide-react';
 import { stationApiService } from '@/services/stationApiService';
 import { authService } from '@/services/authService';
 import { toast } from '@/hooks/use-toast';
@@ -20,7 +20,6 @@ interface StationControlProps {
   onClearAll: () => void;
   robotStatus: string;
   onLogOperation?: (operation: any) => void;
-  onPartReleased?: (partId: string) => void;
 }
 
 export const StationControl = ({ 
@@ -28,13 +27,12 @@ export const StationControl = ({
   onRelease, 
   onClearAll,
   robotStatus,
-  onLogOperation,
-  onPartReleased
+  onLogOperation
 }: StationControlProps) => {
   const [selectedApiStation, setSelectedApiStation] = useState<StationSlot | null>(null);
   const [clearAllOpen, setClearAllOpen] = useState(false);
   const [releaseOpen, setReleaseOpen] = useState(false);
-  const [releasingStations, setReleasingStations] = useState<Set<string>>(new Set());
+  const [releasing, setReleasing] = useState(false);
   
   const { 
     stations: apiStations, 
@@ -55,9 +53,7 @@ export const StationControl = ({
   const handleRelease = async () => {
     if (!selectedApiStation?.tray_id) return;
     
-    const stationId = selectedApiStation.id.toString();
-    setReleasingStations(prev => new Set([...prev, stationId]));
-    
+    setReleasing(true);
     try {
       const token = authService.getToken();
       if (!token) {
@@ -80,11 +76,6 @@ export const StationControl = ({
 
       const result = await response.json();
       console.log('Release API Response:', result);
-
-      // Notify parent component that part was released
-      if (onPartReleased) {
-        onPartReleased(selectedApiStation.tray_id);
-      }
 
       // Log the operation
       if (onLogOperation) {
@@ -128,11 +119,7 @@ export const StationControl = ({
         });
       }
     } finally {
-      setReleasingStations(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(stationId);
-        return newSet;
-      });
+      setReleasing(false);
       setReleaseOpen(false);
       setSelectedApiStation(null);
     }
@@ -243,30 +230,19 @@ export const StationControl = ({
           {apiStations.length > 0 ? (
             apiStations.map((station) => {
               const status = getStationStatus(station);
-              const isReleasing = releasingStations.has(station.id.toString());
               return (
                 <div
                   key={station.id}
                   className={cn(
-                    "p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md relative",
+                    "p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md",
                     selectedApiStation?.id === station.id 
                       ? "border-blue-500 bg-blue-50" 
                       : status.isOccupied 
                         ? "border-orange-200 hover:border-orange-300 bg-orange-50" 
                         : "border-green-200 hover:border-green-300 bg-green-50"
                   )}
-                  onClick={() => !isReleasing && setSelectedApiStation(station)}
+                  onClick={() => setSelectedApiStation(station)}
                 >
-                  {/* Loading overlay when releasing */}
-                  {isReleasing && (
-                    <div className="absolute inset-0 bg-white/80 rounded-lg flex items-center justify-center z-10">
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                        <span className="text-xs text-blue-600 font-medium">Releasing...</span>
-                      </div>
-                    </div>
-                  )}
-                  
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Badge 
@@ -320,16 +296,11 @@ export const StationControl = ({
               <AlertDialog open={releaseOpen} onOpenChange={setReleaseOpen}>
                 <AlertDialogTrigger asChild>
                   <Button 
-                    disabled={robotStatus !== 'idle' || releasingStations.has(selectedApiStation.id.toString())}
+                    disabled={robotStatus !== 'idle' || releasing}
                     variant="destructive"
                     className="w-full"
                   >
-                    {releasingStations.has(selectedApiStation.id.toString()) ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Releasing...
-                      </>
-                    ) : robotStatus !== 'idle' ? 'Robot Busy...' : 'Release Tray'}
+                    {releasing ? 'Releasing...' : robotStatus !== 'idle' ? 'Robot Busy...' : 'Release Tray'}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -343,7 +314,7 @@ export const StationControl = ({
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleRelease} className="bg-red-600 hover:bg-red-700">
-                      Release Tray
+                      {releasing ? 'Releasing...' : 'Release Tray'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
