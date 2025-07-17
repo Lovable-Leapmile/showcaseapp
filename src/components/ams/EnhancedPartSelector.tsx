@@ -1,4 +1,3 @@
-
 import { Part } from '@/types/ams';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -156,9 +155,10 @@ export const EnhancedPartSelector = ({
   const [isRetrieving, setIsRetrieving] = useState(false);
   const [trayAvailability, setTrayAvailability] = useState<{ 
     isAvailable: boolean; 
-    stationName?: string; 
+    isInProgress: boolean;
+    taskInfo?: any;
     isChecking: boolean;
-  }>({ isAvailable: true, isChecking: false });
+  }>({ isAvailable: true, isInProgress: false, isChecking: false });
   const pressStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
@@ -194,29 +194,30 @@ export const EnhancedPartSelector = ({
     
     // Reset tray availability when deselecting
     if (!newSelectedPart) {
-      setTrayAvailability({ isAvailable: true, isChecking: false });
+      setTrayAvailability({ isAvailable: true, isInProgress: false, isChecking: false });
       return;
     }
     
     // Check tray availability for the newly selected part
     const partDetails = filteredApiParts.find(part => part.item_id === partId);
     if (partDetails?.tray_id) {
-      setTrayAvailability({ isAvailable: true, isChecking: true });
+      setTrayAvailability({ isAvailable: true, isInProgress: false, isChecking: true });
       
       try {
         const availability = await trayAvailabilityService.checkTrayAvailability(partDetails.tray_id);
         setTrayAvailability({
           isAvailable: availability.isAvailable,
-          stationName: availability.stationName,
+          isInProgress: availability.isInProgress,
+          taskInfo: availability.taskInfo,
           isChecking: false
         });
       } catch (error) {
         console.error('Error checking tray availability:', error);
         // On error, allow retrieval
-        setTrayAvailability({ isAvailable: true, isChecking: false });
+        setTrayAvailability({ isAvailable: true, isInProgress: false, isChecking: false });
       }
     } else {
-      setTrayAvailability({ isAvailable: true, isChecking: false });
+      setTrayAvailability({ isAvailable: true, isInProgress: false, isChecking: false });
     }
   }, [selectedApiPart, filteredApiParts]);
 
@@ -260,7 +261,7 @@ export const EnhancedPartSelector = ({
       // Refresh the parts list and clear selection
       refetch();
       setSelectedApiPart(null);
-      setTrayAvailability({ isAvailable: true, isChecking: false });
+      setTrayAvailability({ isAvailable: true, isInProgress: false, isChecking: false });
       
     } catch (err) {
       console.error('Retrieve tray error:', err);
@@ -476,13 +477,18 @@ export const EnhancedPartSelector = ({
                   {trayAvailability.isChecking ? (
                     <div className="flex items-center justify-center py-2 text-sm text-gray-600">
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Checking tray availability...
+                      Checking tray status...
                     </div>
-                  ) : !trayAvailability.isAvailable ? (
-                    <div className="text-center py-3 px-4 bg-orange-50 border border-orange-200 rounded-lg">
-                      <div className="text-sm text-orange-800 font-medium">
-                        This tray is already retrieved to Station {trayAvailability.stationName}.
+                  ) : trayAvailability.isInProgress ? (
+                    <div className="text-center py-3 px-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-sm text-blue-800 font-medium">
+                        Retrieval is in progress for this tray.
                       </div>
+                      {trayAvailability.taskInfo && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          Task ID: {trayAvailability.taskInfo.task_id}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <Button 

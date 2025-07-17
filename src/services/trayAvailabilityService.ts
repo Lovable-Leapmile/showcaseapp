@@ -1,26 +1,20 @@
 
 import { authService } from './authService';
 
-export interface TrayAvailabilityResponse {
+export interface TrayTaskResponse {
   status: string;
   status_code: number;
   message: string;
   timestamp: string;
   records: Array<{
     id: number;
-    slot_name: string;
-    tray_id: string | null;
+    task_id: string;
+    tray_id: string;
+    task_status: string;
     created_at: string;
     updated_at: string;
-    slot_id: string;
-    slot_status: string;
-    slot_height: number;
-    row: number;
-    rack: number;
-    slot: number;
-    depth: number;
-    tags: string[];
-    status?: string | null;
+    task_type?: string;
+    description?: string;
   }>;
   count: number;
   statusbool: boolean;
@@ -31,14 +25,14 @@ export interface TrayAvailabilityResponse {
 class TrayAvailabilityService {
   private readonly API_BASE_URL = 'https://dev.qikpod.com/showcase';
 
-  async checkTrayAvailability(trayId: string): Promise<{ isAvailable: boolean; stationName?: string }> {
+  async checkTrayAvailability(trayId: string): Promise<{ isAvailable: boolean; isInProgress: boolean; taskInfo?: any }> {
     const token = authService.getToken();
     
     if (!token) {
       throw new Error('No authentication token available');
     }
 
-    const url = `${this.API_BASE_URL}/slots?tray_id=${encodeURIComponent(trayId)}&tags=station&order_by_field=updated_at&order_by_type=ASC`;
+    const url = `${this.API_BASE_URL}/task?tray_id=${encodeURIComponent(trayId)}&task_status=inprogress`;
     
     try {
       const response = await fetch(url, {
@@ -50,30 +44,33 @@ class TrayAvailabilityService {
       });
 
       if (!response.ok) {
-        console.warn(`Tray availability check failed: ${response.status}`);
+        console.warn(`Tray task check failed: ${response.status}`);
         // If API fails, allow retrieval
-        return { isAvailable: true };
+        return { isAvailable: true, isInProgress: false };
       }
 
-      const data: TrayAvailabilityResponse = await response.json();
-      console.log('Tray availability check response:', data);
+      const data: TrayTaskResponse = await response.json();
+      console.log('Tray task check response:', data);
       
-      // If there are records, the tray is already at a station
+      // If there are records with inprogress status, the tray retrieval is in progress
       if (data.records && data.records.length > 0) {
-        const stationSlot = data.records[0];
-        return { 
-          isAvailable: false, 
-          stationName: stationSlot.slot_name 
-        };
+        const inProgressTask = data.records.find(task => task.task_status === 'inprogress');
+        if (inProgressTask) {
+          return { 
+            isAvailable: false, 
+            isInProgress: true,
+            taskInfo: inProgressTask
+          };
+        }
       }
       
-      // No records means tray is not at any station, so it's available for retrieval
-      return { isAvailable: true };
+      // No in-progress tasks found, tray is available for retrieval
+      return { isAvailable: true, isInProgress: false };
       
     } catch (error) {
-      console.warn('Tray availability check error:', error);
+      console.warn('Tray task check error:', error);
       // If API fails, allow retrieval
-      return { isAvailable: true };
+      return { isAvailable: true, isInProgress: false };
     }
   }
 }
