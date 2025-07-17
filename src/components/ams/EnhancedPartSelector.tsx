@@ -1,3 +1,4 @@
+
 import { Part } from '@/types/ams';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { useState, useRef, useCallback, useMemo } from 'react';
 import { usePartsApi } from '@/hooks/usePartsApi';
 import { ApiPartItem } from './ApiPartItem';
 import { authService } from '@/services/authService';
+import { trayAvailabilityService } from '@/services/trayAvailabilityService';
 import { toast } from '@/hooks/use-toast';
 
 interface EnhancedPartSelectorProps {
@@ -152,6 +154,11 @@ export const EnhancedPartSelector = ({
   const [apiSearchTerm, setApiSearchTerm] = useState<string>('');
   const [selectedApiPart, setSelectedApiPart] = useState<string | null>(null);
   const [isRetrieving, setIsRetrieving] = useState(false);
+  const [trayAvailability, setTrayAvailability] = useState<{ 
+    isAvailable: boolean; 
+    stationName?: string; 
+    isChecking: boolean;
+  }>({ isAvailable: true, isChecking: false });
   const pressStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
@@ -181,9 +188,37 @@ export const EnhancedPartSelector = ({
     fetchParts(category);
   }, [fetchParts]);
 
-  const handlePartClick = (partId: string) => {
-    setSelectedApiPart(selectedApiPart === partId ? null : partId);
-  };
+  const handlePartClick = useCallback(async (partId: string) => {
+    const newSelectedPart = selectedApiPart === partId ? null : partId;
+    setSelectedApiPart(newSelectedPart);
+    
+    // Reset tray availability when deselecting
+    if (!newSelectedPart) {
+      setTrayAvailability({ isAvailable: true, isChecking: false });
+      return;
+    }
+    
+    // Check tray availability for the newly selected part
+    const partDetails = filteredApiParts.find(part => part.item_id === partId);
+    if (partDetails?.tray_id) {
+      setTrayAvailability({ isAvailable: true, isChecking: true });
+      
+      try {
+        const availability = await trayAvailabilityService.checkTrayAvailability(partDetails.tray_id);
+        setTrayAvailability({
+          isAvailable: availability.isAvailable,
+          stationName: availability.stationName,
+          isChecking: false
+        });
+      } catch (error) {
+        console.error('Error checking tray availability:', error);
+        // On error, allow retrieval
+        setTrayAvailability({ isAvailable: true, isChecking: false });
+      }
+    } else {
+      setTrayAvailability({ isAvailable: true, isChecking: false });
+    }
+  }, [selectedApiPart, filteredApiParts]);
 
   const handleRetrieve = useCallback(async () => {
     if (!selectedPartDetails?.tray_id) return;
@@ -225,6 +260,7 @@ export const EnhancedPartSelector = ({
       // Refresh the parts list and clear selection
       refetch();
       setSelectedApiPart(null);
+      setTrayAvailability({ isAvailable: true, isChecking: false });
       
     } catch (err) {
       console.error('Retrieve tray error:', err);
@@ -436,14 +472,29 @@ export const EnhancedPartSelector = ({
               </div>
               
               {selectedPartDetails.tray_id ? (
-                <Button 
-                  disabled={robotStatus !== 'idle' || isRetrieving}
-                  variant="default"
-                  className="w-full"
-                  onClick={handleRetrieve}
-                >
-                  {isRetrieving ? 'Retrieving...' : robotStatus !== 'idle' ? 'Robot Busy...' : 'Retrieve Tray'}
-                </Button>
+                <div className="space-y-2">
+                  {trayAvailability.isChecking ? (
+                    <div className="flex items-center justify-center py-2 text-sm text-gray-600">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Checking tray availability...
+                    </div>
+                  ) : !trayAvailability.isAvailable ? (
+                    <div className="text-center py-3 px-4 bg-orange-50 border border-orange-200 rounded-lg">
+                      <div className="text-sm text-orange-800 font-medium">
+                        This tray is already retrieved to Station {trayAvailability.stationName}.
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      disabled={robotStatus !== 'idle' || isRetrieving}
+                      variant="default"
+                      className="w-full"
+                      onClick={handleRetrieve}
+                    >
+                      {isRetrieving ? 'Retrieving...' : robotStatus !== 'idle' ? 'Robot Busy...' : 'Retrieve Tray'}
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-2 text-gray-500 text-sm">
                   Part has no tray assigned
