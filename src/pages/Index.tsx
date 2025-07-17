@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { useAMSSystem } from '@/hooks/useAMSSystem';
 import { EnhancedPartSelector } from '@/components/ams/EnhancedPartSelector';
@@ -52,7 +53,8 @@ const Index = () => {
 
   // Get API parts data for System Status - only when authenticated
   const {
-    parts: apiParts
+    parts: apiParts,
+    markPartReleased
   } = usePartsApi(isAuthenticated);
 
   // Calculate unmapped parts (parts without tray_id)
@@ -88,6 +90,11 @@ const Index = () => {
   const handleLogout = () => {
     authService.clearUserData();
     setIsAuthenticated(false);
+  };
+
+  const handlePartReleased = (partId: string) => {
+    // Mark the part as released so it appears back in the Available Parts list
+    markPartReleased(partId);
   };
 
   if (isLoading) {
@@ -167,7 +174,7 @@ const Index = () => {
               </SwipeableTabsContent>
 
               <SwipeableTabsContent value="stations" className="mt-0 pb-8 sm:pb-12">
-                <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} onClearAll={clearAllStations} robotStatus={robotStatus} onLogOperation={addOperation} />
+                <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} onClearAll={clearAllStations} robotStatus={robotStatus} onLogOperation={addOperation} onPartReleased={handlePartReleased} />
               </SwipeableTabsContent>
 
               <SwipeableTabsContent value="operations" className="mt-0 pb-8 sm:pb-12">

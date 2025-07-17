@@ -26,6 +26,7 @@ export const usePartsApi = (enabled: boolean = true) => {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retrievedParts, setRetrievedParts] = useState<Set<string>>(new Set());
 
   const fetchCategories = useCallback(async () => {
     if (!enabled) return;
@@ -110,6 +111,21 @@ export const usePartsApi = (enabled: boolean = true) => {
     }
   }, [enabled]);
 
+  const markPartRetrieved = useCallback((partId: string) => {
+    setRetrievedParts(prev => new Set([...prev, partId]));
+  }, []);
+
+  const markPartReleased = useCallback((partId: string) => {
+    setRetrievedParts(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(partId);
+      return newSet;
+    });
+  }, []);
+
+  // Filter out retrieved parts from the displayed list
+  const availableParts = parts.filter(part => !retrievedParts.has(part.item_id));
+
   useEffect(() => {
     if (enabled && authService.isAuthenticated()) {
       fetchCategories();
@@ -118,11 +134,13 @@ export const usePartsApi = (enabled: boolean = true) => {
   }, [fetchCategories, fetchParts, enabled]);
 
   return {
-    parts,
+    parts: availableParts,
     categories,
     isLoading,
     error,
     fetchParts,
     refetch: () => fetchParts(),
+    markPartRetrieved,
+    markPartReleased,
   };
 };

@@ -155,7 +155,15 @@ export const EnhancedPartSelector = ({
   const pressStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
-  const { parts: apiParts, categories, isLoading, error, fetchParts, refetch } = usePartsApi();
+  const { 
+    parts: apiParts, 
+    categories, 
+    isLoading, 
+    error, 
+    fetchParts, 
+    refetch, 
+    markPartRetrieved 
+  } = usePartsApi();
 
   const isQueueBlocked = queueLength > 0;
 
@@ -212,6 +220,9 @@ export const EnhancedPartSelector = ({
       const result = await response.json();
       console.log('Retrieve API Response:', result);
 
+      // Mark part as retrieved to remove it from the list immediately
+      markPartRetrieved(selectedPartDetails.item_id);
+
       // Log the retrieve operation
       if (onLogApiRetrieve) {
         onLogApiRetrieve(selectedPartDetails.item_id, selectedPartDetails.tray_id);
@@ -222,8 +233,7 @@ export const EnhancedPartSelector = ({
         description: `Tray ${selectedPartDetails.tray_id} has been retrieved to a station`,
       });
 
-      // Refresh the parts list and clear selection
-      refetch();
+      // Clear selection
       setSelectedApiPart(null);
       
     } catch (err) {
@@ -238,7 +248,7 @@ export const EnhancedPartSelector = ({
     } finally {
       setIsRetrieving(false);
     }
-  }, [selectedPartDetails, refetch, onLogApiRetrieve]);
+  }, [selectedPartDetails, markPartRetrieved, onLogApiRetrieve]);
 
   const handleTouchStart = useCallback((part: Part, e: React.TouchEvent) => {
     if (isQueueBlocked) return;
@@ -442,7 +452,12 @@ export const EnhancedPartSelector = ({
                   className="w-full"
                   onClick={handleRetrieve}
                 >
-                  {isRetrieving ? 'Retrieving...' : robotStatus !== 'idle' ? 'Robot Busy...' : 'Retrieve Tray'}
+                  {isRetrieving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Retrieving...
+                    </>
+                  ) : robotStatus !== 'idle' ? 'Robot Busy...' : 'Retrieve Tray'}
                 </Button>
               ) : (
                 <div className="text-center py-2 text-gray-500 text-sm">
