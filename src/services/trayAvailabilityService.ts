@@ -50,7 +50,7 @@ export interface TaskResponse {
 class TrayAvailabilityService {
   private readonly API_BASE_URL = 'https://dev.qikpod.com/showcase';
 
-  async checkTrayAvailability(trayId: string): Promise<{ isAvailable: boolean; stationName?: string; isInProgress?: boolean }> {
+  async checkTrayAvailability(trayId: string): Promise<{ isAvailable: boolean; stationName?: string; isInProgress?: boolean; isPending?: boolean }> {
     const token = authService.getToken();
     
     if (!token) {
@@ -59,9 +59,9 @@ class TrayAvailabilityService {
 
     try {
       // First check if there's an in-progress task for this tray
-      const taskUrl = `${this.API_BASE_URL}/task?tray_id=${encodeURIComponent(trayId)}&task_status=inprogress`;
+      const inProgressTaskUrl = `${this.API_BASE_URL}/task?tray_id=${encodeURIComponent(trayId)}&task_status=inprogress`;
       
-      const taskResponse = await fetch(taskUrl, {
+      const inProgressTaskResponse = await fetch(inProgressTaskUrl, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -69,22 +69,48 @@ class TrayAvailabilityService {
         }
       });
 
-      if (taskResponse.ok) {
-        const taskData: TaskResponse = await taskResponse.json();
-        console.log('Task check response:', taskData);
+      if (inProgressTaskResponse.ok) {
+        const inProgressTaskData: TaskResponse = await inProgressTaskResponse.json();
+        console.log('In-progress task check response:', inProgressTaskData);
         
         // If there are in-progress tasks, the tray is not available
-        if (taskData.records && taskData.records.length > 0) {
+        if (inProgressTaskData.records && inProgressTaskData.records.length > 0) {
           return { 
             isAvailable: false, 
             isInProgress: true 
           };
         }
       } else {
-        console.warn(`Task check failed: ${taskResponse.status}`);
+        console.warn(`In-progress task check failed: ${inProgressTaskResponse.status}`);
       }
 
-      // Then check if the tray is already at a station
+      // Then check if there's a pending task for this tray
+      const pendingTaskUrl = `${this.API_BASE_URL}/task?tray_id=${encodeURIComponent(trayId)}&task_status=pending`;
+      
+      const pendingTaskResponse = await fetch(pendingTaskUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (pendingTaskResponse.ok) {
+        const pendingTaskData: TaskResponse = await pendingTaskResponse.json();
+        console.log('Pending task check response:', pendingTaskData);
+        
+        // If there are pending tasks, the tray is not available
+        if (pendingTaskData.records && pendingTaskData.records.length > 0) {
+          return { 
+            isAvailable: false, 
+            isPending: true 
+          };
+        }
+      } else {
+        console.warn(`Pending task check failed: ${pendingTaskResponse.status}`);
+      }
+
+      // Finally check if the tray is already at a station
       const slotsUrl = `${this.API_BASE_URL}/slots?tray_id=${encodeURIComponent(trayId)}&tags=station&order_by_field=updated_at&order_by_type=ASC`;
       
       const slotsResponse = await fetch(slotsUrl, {

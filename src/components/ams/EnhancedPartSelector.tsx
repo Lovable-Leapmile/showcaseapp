@@ -158,6 +158,7 @@ export const EnhancedPartSelector = ({
     isAvailable: boolean; 
     stationName?: string; 
     isInProgress?: boolean;
+    isPending?: boolean;
     isChecking: boolean;
   }>({ isAvailable: true, isChecking: false });
   const pressStartTime = useRef<number>(0);
@@ -210,6 +211,7 @@ export const EnhancedPartSelector = ({
           isAvailable: availability.isAvailable,
           stationName: availability.stationName,
           isInProgress: availability.isInProgress,
+          isPending: availability.isPending,
           isChecking: false
         });
       } catch (error) {
@@ -485,7 +487,9 @@ export const EnhancedPartSelector = ({
                       <div className="text-sm text-orange-800 font-medium">
                         {trayAvailability.isInProgress 
                           ? "Retrieval is in progress for this tray."
-                          : `This tray is already retrieved to Station ${trayAvailability.stationName}.`
+                          : trayAvailability.isPending
+                            ? "Retrieval is pending for this tray."
+                            : `This tray is already retrieved to Station ${trayAvailability.stationName}.`
                         }
                       </div>
                     </div>
