@@ -157,6 +157,7 @@ export const EnhancedPartSelector = ({
   const [trayAvailability, setTrayAvailability] = useState<{ 
     isAvailable: boolean; 
     stationName?: string; 
+    isInProgress?: boolean;
     isChecking: boolean;
   }>({ isAvailable: true, isChecking: false });
   const pressStartTime = useRef<number>(0);
@@ -208,6 +209,7 @@ export const EnhancedPartSelector = ({
         setTrayAvailability({
           isAvailable: availability.isAvailable,
           stationName: availability.stationName,
+          isInProgress: availability.isInProgress,
           isChecking: false
         });
       } catch (error) {
@@ -481,7 +483,10 @@ export const EnhancedPartSelector = ({
                   ) : !trayAvailability.isAvailable ? (
                     <div className="text-center py-3 px-4 bg-orange-50 border border-orange-200 rounded-lg">
                       <div className="text-sm text-orange-800 font-medium">
-                        This tray is already retrieved to Station {trayAvailability.stationName}.
+                        {trayAvailability.isInProgress 
+                          ? "Retrieval is in progress for this tray."
+                          : `This tray is already retrieved to Station ${trayAvailability.stationName}.`
+                        }
                       </div>
                     </div>
                   ) : (
