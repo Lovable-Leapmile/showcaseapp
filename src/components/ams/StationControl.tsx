@@ -121,11 +121,10 @@ export const StationControl = ({
       
     } catch (err) {
       console.error('Release tray error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to release tray';
       
       toast({
-        title: "Release Failed",
-        description: errorMessage,
+        title: "Station busy",
+        description: "Please try again later",
         variant: "destructive",
       });
 
