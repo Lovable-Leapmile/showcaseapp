@@ -486,10 +486,10 @@ export const EnhancedPartSelector = ({
                     <div className="text-center py-3 px-4 bg-orange-50 border border-orange-200 rounded-lg">
                       <div className="text-sm text-orange-800 font-medium">
                         {trayAvailability.isInProgress 
-                          ? "Retrieval is in progress for this tray."
+                          ? "Retrieval is in progress for this part."
                           : trayAvailability.isPending
-                            ? "Retrieval is pending for this tray."
-                            : `This tray is already retrieved to Station ${trayAvailability.stationName}.`
+                            ? "Retrieval is pending for this part."
+                            : `This part is already retrieved to Station ${trayAvailability.stationName}.`
                         }
                       </div>
                     </div>
