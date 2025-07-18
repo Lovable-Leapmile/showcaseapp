@@ -73,12 +73,7 @@ export const StationControl = ({
         // Check if it's a conflict error (tray already being released)
         if (response.status === 409 || response.status === 400) {
           toast({
-            title: (
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-orange-500" />
-                Tray Release is in Processing
-              </div>
-            ),
+            title: "Tray Release is in Processing",
             description: `Tray ${selectedApiStation.tray_id} is already being processed. Please wait.`,
             variant: "destructive",
           });
