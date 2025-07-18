@@ -123,7 +123,7 @@ export const StationControl = ({
       console.error('Release tray error:', err);
       
       toast({
-        title: "Station busy",
+        title: "Station in processing..",
         description: "Please try again later",
         variant: "destructive",
       });
