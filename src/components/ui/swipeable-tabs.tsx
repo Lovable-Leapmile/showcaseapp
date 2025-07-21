@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { EnhancedTabs, EnhancedTabsList, EnhancedTabsTrigger, EnhancedTabsContent } from './enhanced-tabs';
 import { cn } from '@/lib/utils';
+
 interface SwipeableTabsProps {
   defaultValue?: string;
   value?: string;
@@ -12,6 +14,7 @@ interface SwipeableTabsProps {
     label: string;
   }>;
 }
+
 export const SwipeableTabs = ({
   defaultValue,
   value,
@@ -22,21 +25,32 @@ export const SwipeableTabs = ({
 }: SwipeableTabsProps) => {
   const [activeTab, setActiveTab] = useState(defaultValue || tabs[0]?.value || '');
   const currentValue = value || activeTab;
+
   const handleTabChange = (newValue: string) => {
     setActiveTab(newValue);
     onValueChange?.(newValue);
   };
-  return <div className={cn("w-full", className)}>
+
+  return (
+    <div className={cn("w-full", className)}>
       <EnhancedTabs value={currentValue} onValueChange={handleTabChange}>
         <EnhancedTabsList className="grid w-full mb-6 h-12 bg-white rounded-xl shadow-sm border border-gray-200" style={{
-        gridTemplateColumns: `repeat(${tabs.length}, 1fr)`
-      }}>
-          {tabs.map(tab => <EnhancedTabsTrigger key={tab.value} value={tab.value} className="text-sm sm:text-base font-medium data-[state=active]:text-white transition-all duration-300 rounded-lg m-1 px-0 my-0 py-[5px] bg-[#0e5e65]">
+          gridTemplateColumns: `repeat(${tabs.length}, 1fr)`
+        }}>
+          {tabs.map(tab => (
+            <EnhancedTabsTrigger 
+              key={tab.value} 
+              value={tab.value} 
+              className="text-sm sm:text-base font-medium data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-all duration-300 rounded-lg m-1 px-0 my-0 py-[5px]"
+            >
               {tab.label}
-            </EnhancedTabsTrigger>)}
+            </EnhancedTabsTrigger>
+          ))}
         </EnhancedTabsList>
         {children}
       </EnhancedTabs>
-    </div>;
+    </div>
+  );
 };
+
 export const SwipeableTabsContent = EnhancedTabsContent;
