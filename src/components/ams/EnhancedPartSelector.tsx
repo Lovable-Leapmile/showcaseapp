@@ -170,12 +170,16 @@ export const EnhancedPartSelector = ({
 
   // Filter API parts based on search term
   const filteredApiParts = useMemo(() => {
-    if (!apiSearchTerm) return apiParts;
+    if (!apiSearchTerm) return apiParts.filter(part => part != null);
     
     return apiParts.filter(part => 
-      part.item_id.toLowerCase().includes(apiSearchTerm.toLowerCase()) ||
-      part.item_description.toLowerCase().includes(apiSearchTerm.toLowerCase()) ||
-      part.item_category.toLowerCase().includes(apiSearchTerm.toLowerCase())
+      part != null &&
+      part.item_id != null &&
+      part.item_description != null &&
+      part.item_category != null &&
+      (part.item_id.toLowerCase().includes(apiSearchTerm.toLowerCase()) ||
+       part.item_description.toLowerCase().includes(apiSearchTerm.toLowerCase()) ||
+       part.item_category.toLowerCase().includes(apiSearchTerm.toLowerCase()))
     );
   }, [apiParts, apiSearchTerm]);
 
