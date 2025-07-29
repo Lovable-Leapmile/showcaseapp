@@ -23,7 +23,7 @@ export const ApiPartItem = ({
   const MAX_DESCRIPTION_LENGTH = 80;
   const shouldTruncateDescription = part.item_description.length > MAX_DESCRIPTION_LENGTH;
   const displayDescription = isDescriptionExpanded ? part.item_description : shouldTruncateDescription ? part.item_description.substring(0, MAX_DESCRIPTION_LENGTH) + '...' : part.item_description;
-  const defaultImageUrl = 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop';
+  const defaultImageUrl = '/src/assets/no-data-found.jpg';
   return <div className={cn("p-2 sm:p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md cursor-pointer select-none", isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300")} onClick={onClick}>
       <div className="flex items-start space-x-2 sm:space-x-3">
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">

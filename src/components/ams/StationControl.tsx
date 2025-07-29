@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useStationApi } from '@/hooks/useStationApi';
 import { StationSlot } from '@/services/stationApiService';
 import { RefreshCw, Clock, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import { NoData } from '@/components/ui/no-data';
 import { stationApiService } from '@/services/stationApiService';
 import { authService } from '@/services/authService';
 import { toast } from '@/hooks/use-toast';
@@ -44,9 +45,84 @@ export const StationControl = ({
 
   const occupiedStations = apiStations.filter(station => station.tray_id !== null);
 
-  const handleClearAll = () => {
-    onClearAll();
+  const handleClearAll = async () => {
     setClearAllOpen(false);
+    
+    // Clear stations one by one using their tray_id
+    for (const station of occupiedStations) {
+      if (station.tray_id) {
+        try {
+          const token = authService.getToken();
+          if (!token) {
+            throw new Error('No authentication token available');
+          }
+
+          const url = `https://dev.qikpod.com/showcase/release_tray?tray_id=${station.tray_id}&tags=station`;
+          
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            // Log successful release operation
+            if (onLogOperation) {
+              onLogOperation({
+                id: Date.now().toString() + Math.random(),
+                type: 'release',
+                part: { name: `Tray ${station.tray_id}` },
+                station: { name: station.slot_name },
+                status: 'completed',
+                timestamp: new Date()
+              });
+            }
+          } else {
+            // Log failed operation but continue with other stations
+            if (onLogOperation) {
+              onLogOperation({
+                id: Date.now().toString() + Math.random(),
+                type: 'release',
+                part: { name: `Tray ${station.tray_id}` },
+                station: { name: station.slot_name },
+                status: 'error',
+                timestamp: new Date()
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Error clearing station ${station.slot_name}:`, error);
+          // Log failed operation but continue with other stations
+          if (onLogOperation) {
+            onLogOperation({
+              id: Date.now().toString() + Math.random(),
+              type: 'release',
+              part: { name: `Tray ${station.tray_id}` },
+              station: { name: station.slot_name },
+              status: 'error',
+              timestamp: new Date()
+            });
+          }
+        }
+        
+        // Small delay between releases to avoid overwhelming the API
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    // Show completion toast
+    toast({
+      title: "Clear All Complete",
+      description: `Attempted to clear ${occupiedStations.length} stations`,
+    });
+
+    // Refresh station data
+    refetch();
+    
+    // Call the original onClearAll for any additional cleanup
+    onClearAll();
   };
 
   const handleRelease = async () => {
@@ -296,7 +372,7 @@ export const StationControl = ({
                   Failed to load stations: {error}
                 </div>
               ) : (
-                "No stations available"
+                <NoData message="No Stations Available" className="py-4" />
               )}
             </div>
           )}

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { NoData } from '@/components/ui/no-data';
 import { Search, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useCallback } from 'react';
@@ -210,7 +211,7 @@ export const PartSelector = ({
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop';
+                      target.src = '/src/assets/no-data-found.jpg';
                     }}
                   />
                 </div>
@@ -263,7 +264,10 @@ export const PartSelector = ({
         {parts.length === 0 && (
           <div className="text-center py-6 sm:py-8 text-gray-500">
             <div className="text-xs sm:text-sm">
-              {searchTerm ? 'No parts match your search' : 'No parts available in storage'}
+              <NoData 
+                message={searchTerm ? 'No parts match your search' : 'No Parts Available in Storage'}
+                className="py-4"
+              />
             </div>
           </div>
         )}

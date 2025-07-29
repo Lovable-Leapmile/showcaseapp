@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, AlertCircle, Loader2 } from 'lucide-react';
+import { NoData } from '@/components/ui/no-data';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { usePartsApi } from '@/hooks/usePartsApi';
@@ -104,7 +105,7 @@ const PartItem = ({
             className="w-full h-full object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop';
+              target.src = '/src/assets/no-data-found.jpg';
             }}
           />
         </div>
@@ -459,13 +460,12 @@ export const EnhancedPartSelector = ({
           )}
 
           {!isLoading && filteredApiParts.length === 0 && (
-            <div className="text-center py-6 sm:py-8 text-gray-500">
-              <div className="text-xs sm:text-sm">
-                {apiSearchTerm || selectedCategory !== 'All Categories' 
-                  ? 'No parts match your search criteria' 
-                  : 'No parts available'}
-              </div>
-            </div>
+            <NoData 
+              message={apiSearchTerm || selectedCategory !== 'All Categories' 
+                ? 'No parts match your search criteria' 
+                : 'No Parts Available'}
+              className="py-4 sm:py-6"
+            />
           )}
 
           {/* Selected Part Actions - Similar to Station Control */}
