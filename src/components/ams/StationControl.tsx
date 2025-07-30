@@ -57,7 +57,7 @@ export const StationControl = ({
             throw new Error('No authentication token available');
           }
 
-          const url = `https://dev.qikpod.com/showcase/release_tray?tray_id=${station.tray_id}&tags=station`;
+          const url = `https://amsshowcase1.leapmile.com/showcase/release_tray?tray_id=${station.tray_id}&tags=station`;
           
           const response = await fetch(url, {
             method: 'POST',
@@ -135,7 +135,7 @@ export const StationControl = ({
         throw new Error('No authentication token available');
       }
 
-      const url = `https://dev.qikpod.com/showcase/release_tray?tray_id=${selectedApiStation.tray_id}&tags=station`;
+      const url = `https://amsshowcase1.leapmile.com/showcase/release_tray?tray_id=${selectedApiStation.tray_id}&tags=station`;
       
       const response = await fetch(url, {
         method: 'POST',

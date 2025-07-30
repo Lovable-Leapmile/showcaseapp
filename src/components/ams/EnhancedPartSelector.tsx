@@ -239,7 +239,7 @@ export const EnhancedPartSelector = ({
         throw new Error('No authentication token available');
       }
 
-      const url = `https://dev.qikpod.com/showcase/retrieve_tray?tray_id=${selectedPartDetails.tray_id}&required_tags=station`;
+      const url = `https://amsshowcase1.leapmile.com/showcase/retrieve_tray?tray_id=${selectedPartDetails.tray_id}&required_tags=station`;
       
       const response = await fetch(url, {
         method: 'POST',

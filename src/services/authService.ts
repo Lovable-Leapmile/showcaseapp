@@ -18,7 +18,7 @@ interface UserData {
 }
 
 class AuthService {
-  private readonly API_BASE_URL = 'https://dev.qikpod.com/showcase';
+  private readonly API_BASE_URL = 'https://amsshowcase1.leapmile.com/showcase';
   private readonly STORAGE_KEYS = {
     USER_DATA: 'ams_user_data',
     TOKEN: 'ams_token'
