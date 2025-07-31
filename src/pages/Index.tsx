@@ -12,7 +12,7 @@ import { SwipeableTabs, SwipeableTabsContent } from '@/components/ui/swipeable-t
 import { authService } from '@/services/authService';
 import { useStationApi } from '@/hooks/useStationApi';
 import { usePartsApi } from '@/hooks/usePartsApi';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Package, MapPinOff, MonitorCheck, MonitorDot } from 'lucide-react';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -124,28 +124,42 @@ const Index = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                  <div className="text-center p-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-2">{apiParts.length}</div>
-                    <div className="text-sm sm:text-base text-gray-700 font-medium">Parts Available</div>
-                    <div className="text-xs text-gray-500 mt-1">Ready for retrieval</div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
+                  {/* Row 1: Parts Available (left), Unmapped Parts (right) */}
+                  <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
+                    <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Parts Available</div>
+                    <div className="flex items-center justify-between mb-2 mt-2">
+                      <div className="text-4xl sm:text-5xl font-extralight text-blue-600">{apiParts.length}</div>
+                      <Package className="w-5 h-5 text-blue-500 ml-2" />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 hidden sm:block">Ready for retrieval</div>
                   </div>
-                  <div className="text-center p-4 sm:p-6 bg-green-50 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
-                    <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">{apiFreeStations.length}</div>
-                    <div className="text-sm sm:text-base text-gray-700 font-medium">Free Stations</div>
-                    <div className="text-xs text-gray-500 mt-1">Available for use</div>
-                  </div>
-                  <div className="text-center p-4 sm:p-6 bg-orange-50 rounded-xl border-2 border-orange-100 hover:border-orange-200 transition-colors">
-                    <div className="text-2xl sm:text-3xl font-bold text-orange-600 mb-2">{apiOccupiedStations.length}</div>
-                    <div className="text-sm sm:text-base text-gray-700 font-medium">Occupied Stations</div>
-                    <div className="text-xs text-gray-500 mt-1">Currently in use</div>
-                  </div>
-                  <div className="text-center p-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
-                    <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">{unmappedPartsCount}</div>
-                    <div className="text-sm sm:text-base text-gray-700 font-medium">Unmapped Parts</div>
-                    <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
+                    <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Unmapped Parts</div>
+                    <div className="flex items-center justify-between mb-2 mt-2">
+                      <div className="text-4xl sm:text-5xl font-extralight text-purple-600">{unmappedPartsCount}</div>
+                      <MapPinOff className="w-5 h-5 text-purple-500 ml-2" />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 hidden sm:block">
                       {unmappedPartsCount > 0 ? 'Parts without tray mapping' : 'All parts mapped to trays'}
                     </div>
+                  </div>
+                  {/* Row 2: Free Stations (left), Occupied Stations (right) */}
+                  <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-green-50 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
+                    <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Free Stations</div>
+                    <div className="flex items-center justify-between mb-2 mt-2">
+                      <div className="text-4xl sm:text-5xl font-extralight text-green-600">{apiFreeStations.length}</div>
+                      <MonitorCheck className="w-5 h-5 text-green-500 ml-2" />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 hidden sm:block">Available for use</div>
+                  </div>
+                  <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-orange-50 rounded-xl border-2 border-orange-100 hover:border-orange-200 transition-colors">
+                    <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Occupied Stations</div>
+                    <div className="flex items-center justify-between mb-2 mt-2">
+                      <div className="text-4xl sm:text-5xl font-extralight text-orange-600">{apiOccupiedStations.length}</div>
+                      <MonitorDot className="w-5 h-5 text-orange-500 ml-2" />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 hidden sm:block">Currently in use</div>
                   </div>
                 </div>
               </CardContent>
