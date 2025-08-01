@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,7 @@ export const StationControl = ({
   const [clearAllOpen, setClearAllOpen] = useState(false);
   const [releaseOpen, setReleaseOpen] = useState(false);
   const [releasing, setReleasing] = useState(false);
+  const releaseButtonRef = useRef<HTMLDivElement | null>(null);
   
   const { 
     stations: apiStations, 
@@ -222,6 +223,16 @@ export const StationControl = ({
     }
   };
 
+  const handleStationClick = (station) => {
+    setSelectedApiStation(station);
+    // Auto-scroll to Release Tray button on mobile if station is occupied
+    setTimeout(() => {
+      if (window.innerWidth <= 768 && station.tray_id && releaseButtonRef.current) {
+        releaseButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 200);
+  };
+
   const formatLastUpdated = () => {
     if (!lastUpdated) return '';
     const seconds = Math.floor((Date.now() - lastUpdated.getTime()) / 1000);
@@ -338,7 +349,7 @@ export const StationControl = ({
                         ? "border-orange-200 hover:border-orange-300 bg-orange-50" 
                         : "border-green-200 hover:border-green-300 bg-green-50"
                   )}
-                  onClick={() => setSelectedApiStation(station)}
+                  onClick={() => handleStationClick(station)}
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -380,7 +391,7 @@ export const StationControl = ({
 
         {/* Selected Station Actions */}
         {selectedApiStation && (
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t" ref={releaseButtonRef}>
             <div className="mb-3">
               <div className="text-sm font-medium">Selected Station:</div>
               <div className="text-lg font-bold text-blue-600">Station {selectedApiStation.slot_name}</div>

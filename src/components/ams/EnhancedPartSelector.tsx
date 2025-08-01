@@ -164,6 +164,7 @@ export const EnhancedPartSelector = ({
   }>({ isAvailable: true, isChecking: false });
   const pressStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const retrieveButtonRef = useRef<HTMLDivElement | null>(null);
 
   const { parts: apiParts, categories, isLoading, error, fetchParts, refetch } = usePartsApi();
 
@@ -209,7 +210,6 @@ export const EnhancedPartSelector = ({
     const partDetails = filteredApiParts.find(part => part.item_id === partId);
     if (partDetails?.tray_id) {
       setTrayAvailability({ isAvailable: true, isChecking: true });
-      
       try {
         const availability = await trayAvailabilityService.checkTrayAvailability(partDetails.tray_id);
         setTrayAvailability({
@@ -227,6 +227,12 @@ export const EnhancedPartSelector = ({
     } else {
       setTrayAvailability({ isAvailable: true, isChecking: false });
     }
+    // Auto-scroll to Retrieve Tray button on mobile
+    setTimeout(() => {
+      if (window.innerWidth <= 768 && retrieveButtonRef.current) {
+        retrieveButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 200);
   }, [selectedApiPart, filteredApiParts]);
 
   const handleRetrieve = useCallback(async () => {
@@ -470,7 +476,7 @@ export const EnhancedPartSelector = ({
 
           {/* Selected Part Actions - Similar to Station Control */}
           {selectedPartDetails && (
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t" ref={retrieveButtonRef}>
               <div className="mb-3">
                 <div className="text-sm font-medium">Selected Part:</div>
                 <div className="text-lg font-bold text-blue-600">{selectedPartDetails.item_id}</div>

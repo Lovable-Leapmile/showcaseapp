@@ -129,7 +129,7 @@ const Index = () => {
                   <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-blue-50 rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
                     <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Parts Available</div>
                     <div className="flex items-center justify-between mb-2 mt-2">
-                      <div className="text-4xl sm:text-5xl font-extralight text-blue-600">{apiParts.length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-600">{apiParts.length}</div>
                       <Package className="w-5 h-5 text-blue-500 ml-2" />
                     </div>
                     <div className="text-xs text-gray-500 mt-1 hidden sm:block">Ready for retrieval</div>
@@ -137,7 +137,7 @@ const Index = () => {
                   <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
                     <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Unmapped Parts</div>
                     <div className="flex items-center justify-between mb-2 mt-2">
-                      <div className="text-4xl sm:text-5xl font-extralight text-purple-600">{unmappedPartsCount}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-purple-600">{unmappedPartsCount}</div>
                       <MapPinOff className="w-5 h-5 text-purple-500 ml-2" />
                     </div>
                     <div className="text-xs text-gray-500 mt-1 hidden sm:block">
@@ -148,7 +148,7 @@ const Index = () => {
                   <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-green-50 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
                     <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Free Stations</div>
                     <div className="flex items-center justify-between mb-2 mt-2">
-                      <div className="text-4xl sm:text-5xl font-extralight text-green-600">{apiFreeStations.length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-green-600">{apiFreeStations.length}</div>
                       <MonitorCheck className="w-5 h-5 text-green-500 ml-2" />
                     </div>
                     <div className="text-xs text-gray-500 mt-1 hidden sm:block">Available for use</div>
@@ -156,7 +156,7 @@ const Index = () => {
                   <div className="text-left p-3 pt-4 pb-4 sm:p-6 bg-orange-50 rounded-xl border-2 border-orange-100 hover:border-orange-200 transition-colors">
                     <div className="text-sm sm:text-base text-gray-700 font-medium mb-1 mt-2">Occupied Stations</div>
                     <div className="flex items-center justify-between mb-2 mt-2">
-                      <div className="text-4xl sm:text-5xl font-extralight text-orange-600">{apiOccupiedStations.length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-orange-600">{apiOccupiedStations.length}</div>
                       <MonitorDot className="w-5 h-5 text-orange-500 ml-2" />
                     </div>
                     <div className="text-xs text-gray-500 mt-1 hidden sm:block">Currently in use</div>
@@ -177,15 +177,21 @@ const Index = () => {
           <div className={`${showSystemStatus ? 'min-h-[600px] sm:min-h-[700px]' : 'min-h-[calc(100vh-8rem)]'}`}>
             <SwipeableTabs value={activeTab} onValueChange={setActiveTab} tabs={tabs} className="touch-none">
               <SwipeableTabsContent value="parts" className="mt-0 pb-8 sm:pb-12">
-                <EnhancedPartSelector parts={availableParts} selectedPart={selectedPart} selectedParts={selectedParts} searchTerm={searchTerm} onPartSelect={setSelectedPart} onPartsSelect={setSelectedParts} onRetrieve={retrievePart} onRetrieveMultiple={retrieveMultipleParts} onSearchChange={setSearchTerm} robotStatus={robotStatus} queueLength={queue.length} onLogApiRetrieve={logApiRetrieveOperation} />
+                <div className="max-h-[calc(100vh-12rem)] overflow-y-auto sm:max-h-none sm:overflow-visible">
+                  <EnhancedPartSelector parts={availableParts} selectedPart={selectedPart} selectedParts={selectedParts} searchTerm={searchTerm} onPartSelect={setSelectedPart} onPartsSelect={setSelectedParts} onRetrieve={retrievePart} onRetrieveMultiple={retrieveMultipleParts} onSearchChange={setSearchTerm} robotStatus={robotStatus} queueLength={queue.length} onLogApiRetrieve={logApiRetrieveOperation} />
+                </div>
               </SwipeableTabsContent>
 
               <SwipeableTabsContent value="stations" className="mt-0 pb-8 sm:pb-12">
-                <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} onClearAll={clearAllStations} robotStatus={robotStatus} onLogOperation={addOperation} />
+                <div className="max-h-[calc(100vh-12rem)] overflow-y-auto sm:max-h-none sm:overflow-visible">
+                  <StationControl stations={stations} selectedStation={selectedStation} onStationSelect={setSelectedStation} onRelease={releasePart} onClearAll={clearAllStations} robotStatus={robotStatus} onLogOperation={addOperation} />
+                </div>
               </SwipeableTabsContent>
 
               <SwipeableTabsContent value="operations" className="mt-0 pb-8 sm:pb-12">
-                <OperationLog operations={operations} />
+                <div className="max-h-[calc(100vh-12rem)] overflow-y-auto sm:max-h-none sm:overflow-visible">
+                  <OperationLog operations={operations} />
+                </div>
               </SwipeableTabsContent>
             </SwipeableTabs>
           </div>
