@@ -244,15 +244,6 @@ export const useAMSSystem = () => {
   }, [addOperation, executeRobotOperation, releaseStation, markPartAvailable, updateOperationStatus, setSelectedStation]);
 
   const clearAllStations = useCallback(async () => {
-    if (occupiedStations.length === 0) {
-      toast({
-        title: "No Stations to Clear",
-        description: "All stations are already empty.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (robotStatus !== 'idle') {
       toast({
         title: "Robot Busy",
@@ -264,7 +255,7 @@ export const useAMSSystem = () => {
 
     toast({
       title: "Clearing All Stations",
-      description: `Clearing ${occupiedStations.length} occupied stations...`,
+      description: `${occupiedStations.length} stations are occupied, Please wait let the station clear one by one`,
     });
 
     // Clear stations one by one
@@ -275,8 +266,8 @@ export const useAMSSystem = () => {
     }
 
     toast({
-      title: "All Stations Cleared",
-      description: "All parts have been returned to storage.",
+      title: "Clear All Complete",
+      description: `${occupiedStations.length} stations have been cleared successfully.`,
     });
   }, [occupiedStations, robotStatus, releasePart]);
 

@@ -113,10 +113,10 @@ export const StationControl = ({
       }
     }
     
-    // Show completion toast
+    // Show completion toast with better messaging
     toast({
       title: "Clear All Complete",
-      description: `Attempted to clear ${occupiedStations.length} stations`,
+      description: `${occupiedStations.length} stations are occupied, Please wait let the station clear one by one`,
     });
 
     // Refresh station data
@@ -150,8 +150,8 @@ export const StationControl = ({
         // Check if it's a conflict error (tray already being released)
         if (response.status === 409 || response.status === 400) {
           toast({
-            title: "Tray Release is in Processing",
-            description: `Tray ${selectedApiStation.tray_id} is already being processed. Please wait.`,
+            title: "Processing...",
+            description: "Station is busy",
             variant: "destructive",
           });
           
@@ -200,8 +200,8 @@ export const StationControl = ({
       console.error('Release tray error:', err);
       
       toast({
-        title: "Station in processing..",
-        description: "Please try again later",
+        title: "Processing...",
+        description: "Station is busy",
         variant: "destructive",
       });
 
