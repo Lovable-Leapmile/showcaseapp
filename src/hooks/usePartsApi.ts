@@ -36,7 +36,7 @@ export const usePartsApi = (enabled: boolean = true) => {
         return; // Don't show error if not authenticated
       }
 
-      const response = await fetch('https://amsshowcase1.leapmile.com/showcase/items/category_list', {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/showcase/items/category_list`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export const usePartsApi = (enabled: boolean = true) => {
         return; // Don't show error if not authenticated
       }
 
-      let url = 'https://amsshowcase1.leapmile.com/showcase/items?order_by_field=updated_at&order_by_type=ASC';
+            let url = `${import.meta.env.VITE_BASE_URL}/showcase/items?order_by_field=updated_at&order_by_type=ASC`;
       
       if (category && category !== 'All Categories') {
         url += `&item_category=${encodeURIComponent(category)}`;

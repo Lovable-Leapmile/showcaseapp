@@ -31,7 +31,7 @@ export interface StationApiResponse {
 }
 
 class StationApiService {
-  private readonly API_BASE_URL = 'https://amsshowcase1.leapmile.com/showcase';
+    private readonly API_BASE_URL = `${import.meta.env.VITE_BASE_URL}/showcase`;
 
   async fetchStations(): Promise<StationApiResponse> {
     const token = authService.getToken();

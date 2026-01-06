@@ -48,7 +48,7 @@ export interface TaskResponse {
 }
 
 class TrayAvailabilityService {
-  private readonly API_BASE_URL = 'https://amsshowcase1.leapmile.com/showcase';
+    private readonly API_BASE_URL = `${import.meta.env.VITE_BASE_URL}/showcase`;
 
   async checkTrayAvailability(trayId: string): Promise<{ isAvailable: boolean; stationName?: string; isInProgress?: boolean; isPending?: boolean }> {
     const token = authService.getToken();
