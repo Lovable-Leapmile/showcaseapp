@@ -25,7 +25,7 @@ class AuthService {
   };
 
   async login(userPhone: string, password: string): Promise<LoginResponse> {
-    const url = `${this.API_BASE_URL}/validate?user_phone=${encodeURIComponent(userPhone)}&password=${encodeURIComponent(password)}`;
+    const url = `${import.meta.env.VITE_BASE_URL}/user/validate?user_phone=${encodeURIComponent(userPhone)}&password=${encodeURIComponent(password)}`;
     
     const response = await fetch(url, {
       method: 'GET',
