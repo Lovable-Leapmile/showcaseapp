@@ -155,9 +155,6 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           </CardContent>
         </Card>
 
-        <div className="text-center text-xs sm:text-sm text-gray-500 px-4">
-          <p>Enter your mobile number and password to sign in</p>
-        </div>
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500 mt-6 space-y-2">
