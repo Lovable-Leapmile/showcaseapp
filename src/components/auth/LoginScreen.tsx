@@ -158,6 +158,19 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         <div className="text-center text-xs sm:text-sm text-gray-500 px-4">
           <p>Enter your mobile number and password to sign in</p>
         </div>
+
+        {/* Footer */}
+        <div className="text-center text-xs text-gray-500 mt-6 space-y-2">
+          <p>© 2024 All Rights Reserved | Leapmile Logistics Pvt.Ltd</p>
+          <a 
+            href="https://leapmile.com/terms-and-privacy" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            Terms and Condition & Privacy Policy / Cookies Policy
+          </a>
+        </div>
       </div>
     </div>
   );
