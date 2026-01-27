@@ -98,8 +98,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         <div className="text-center">
           <div className="w-60 sm:w-72 md:w-80 h-auto mx-auto mb-4 sm:mb-6 flex items-center justify-center">
             <img 
-              src="https://ams-bucket.blr1.cdn.digitaloceanspaces.com/Ace-ams.png" 
-              alt="AMS Logo" 
+              src="https://leapmile-website.blr1.cdn.digitaloceanspaces.com/AMS.png" 
+              alt="AMS Logo"
               className="w-full h-full object-contain"
             />
           </div>
