@@ -30,7 +30,7 @@ export const AppBar = ({ onLogout }: AppBarProps) => {
         <div className="flex items-center justify-between">
           {/* AMS Logo */}
           <div className="flex items-center">
-            <div className="w-32 sm:w-40 md:w-48 h-auto">
+            <div className="w-20 sm:w-24 md:w-28 h-auto">
               <img 
                 src="https://leapmile-website.blr1.cdn.digitaloceanspaces.com/AMS.png" 
                 alt="AMS Logo"
