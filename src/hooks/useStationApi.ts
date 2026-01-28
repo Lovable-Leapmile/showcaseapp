@@ -1,14 +1,19 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { stationApiService, StationSlot } from '@/services/stationApiService';
+import { authService } from '@/services/authService';
 
-export const useStationApi = () => {
+export const useStationApi = (enabled: boolean = true) => {
   const [stations, setStations] = useState<StationSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchStations = useCallback(async () => {
+    if (!enabled || !authService.isAuthenticated()) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setError(null);
       console.log('Fetching stations from API...');
@@ -23,10 +28,8 @@ export const useStationApi = () => {
       });
       
       if (response.statusbool && response.records) {
-        // Only update state if data has actually changed
         const newStations = response.records;
         setStations(prevStations => {
-          // Compare if data has changed to avoid unnecessary re-renders
           if (JSON.stringify(prevStations) !== JSON.stringify(newStations)) {
             console.log('Stations updated successfully:', {
               count: newStations.length,
@@ -50,21 +53,27 @@ export const useStationApi = () => {
         message: errorMessage,
         stack: err instanceof Error ? err.stack : 'No stack trace'
       });
-      
-      // Removed toast notifications to prevent popups
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   // Initial fetch
   useEffect(() => {
-    console.log('useStationApi: Initial fetch triggered');
-    fetchStations();
-  }, [fetchStations]);
+    if (enabled && authService.isAuthenticated()) {
+      console.log('useStationApi: Initial fetch triggered');
+      fetchStations();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchStations, enabled]);
 
-  // Set up polling every 3 seconds (changed from 3000ms to 3000ms)
+  // Set up polling every 3 seconds
   useEffect(() => {
+    if (!enabled || !authService.isAuthenticated()) {
+      return;
+    }
+
     console.log('useStationApi: Setting up 3-second polling');
     const interval = setInterval(() => {
       console.log('useStationApi: Polling fetch triggered');
@@ -75,7 +84,7 @@ export const useStationApi = () => {
       console.log('useStationApi: Cleaning up polling interval');
       clearInterval(interval);
     };
-  }, [fetchStations]);
+  }, [fetchStations, enabled]);
 
   const getStationStatus = (station: StationSlot) => {
     return {

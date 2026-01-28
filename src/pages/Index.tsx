@@ -46,7 +46,7 @@ const Index = () => {
   // Get API station data for System Status - only when authenticated
   const {
     stations: apiStations
-  } = useStationApi();
+  } = useStationApi(isAuthenticated);
   const apiOccupiedStations = apiStations.filter(station => station.tray_id !== null);
   const apiFreeStations = apiStations.filter(station => station.tray_id === null);
 
