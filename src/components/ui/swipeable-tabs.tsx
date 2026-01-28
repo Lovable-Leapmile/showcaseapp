@@ -34,9 +34,7 @@ export const SwipeableTabs = ({
   return (
     <div className={cn("w-full", className)}>
       <EnhancedTabs value={currentValue} onValueChange={handleTabChange}>
-        <EnhancedTabsList className="grid w-full mb-6 h-12 bg-white rounded-xl shadow-sm border border-gray-200" style={{
-          gridTemplateColumns: `repeat(${tabs.length}, 1fr)`
-        }}>
+        <EnhancedTabsList className="grid grid-flow-col auto-cols-fr w-full mb-6 h-12 bg-white rounded-xl shadow-sm border border-gray-200">
           {tabs.map(tab => (
             <EnhancedTabsTrigger 
               key={tab.value} 
