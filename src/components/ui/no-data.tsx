@@ -21,11 +21,10 @@ export const NoData = ({
         src={noDataImage}
         alt="No data found"
         className={cn(
-          "max-w-xs w-full h-auto rounded-lg shadow-md transition-transform hover:scale-105",
-          "sm:max-w-sm md:max-w-xs",
+          "w-full h-auto rounded-lg shadow-md transition-transform hover:scale-105",
+          "max-w-[300px]",
           imageClassName
         )}
-        style={{ maxWidth: "300px" }}
       />
       <p className="text-muted-foreground text-sm mt-4 text-center font-medium">
         {message}
