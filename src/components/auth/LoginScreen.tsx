@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { authService } from '@/services/authService';
+import amsLogo from '@/assets/ams-logo.png';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -98,7 +99,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         <div className="text-center">
           <div className="w-28 sm:w-32 md:w-40 h-auto mx-auto mb-4 sm:mb-6 flex items-center justify-center">
             <img 
-              src="https://leapmile-website.blr1.cdn.digitaloceanspaces.com/AMS.png" 
+              src={amsLogo} 
               alt="AMS Logo"
               className="w-full h-full object-contain"
             />
