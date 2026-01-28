@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from 'react';
+import amsLogo from '@/assets/ams-logo.png';
 
 interface AppBarProps {
   onLogout: () => void;
@@ -32,7 +33,7 @@ export const AppBar = ({ onLogout }: AppBarProps) => {
           <div className="flex items-center">
             <div className="w-14 sm:w-16 md:w-20 h-auto">
               <img 
-                src="https://leapmile-website.blr1.cdn.digitaloceanspaces.com/AMS.png" 
+                src={amsLogo} 
                 alt="AMS Logo"
                 className="w-full h-full object-contain"
               />
