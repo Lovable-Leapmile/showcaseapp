@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import {
@@ -11,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from 'react';
-import amsLogo from '@/assets/ams-logo.png';
+import { useAppLogo, useAppName } from '@/hooks/useTheme';
 
 interface AppBarProps {
   onLogout: () => void;
@@ -19,6 +18,8 @@ interface AppBarProps {
 
 export const AppBar = ({ onLogout }: AppBarProps) => {
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const appLogo = useAppLogo();
+  const appName = useAppName();
 
   const handleLogoutConfirm = () => {
     setIsLogoutDialogOpen(false);
@@ -29,12 +30,12 @@ export const AppBar = ({ onLogout }: AppBarProps) => {
     <div className="w-full p-3 sm:p-4">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
-          {/* AMS Logo */}
+          {/* App Logo */}
           <div className="flex items-center">
             <div className="w-14 sm:w-16 md:w-20 h-auto">
               <img 
-                src={amsLogo} 
-                alt="AMS Logo"
+                src={appLogo} 
+                alt={`${appName} Logo`}
                 className="w-full h-full object-contain"
               />
             </div>
