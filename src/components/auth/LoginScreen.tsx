@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { authService } from '@/services/authService';
-import amsLogo from '@/assets/ams-logo.png';
+import { useAppLogo, useAppName, useAppDescription } from '@/hooks/useTheme';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -15,6 +15,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  const appLogo = useAppLogo();
+  const appName = useAppName();
+  const appDescription = useAppDescription();
 
   const handleMobileNumberChange = (value: string) => {
     // Only allow numeric input
@@ -93,19 +97,19 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-muted flex items-center justify-center p-4">
       <div className="w-full max-w-sm sm:max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
           <div className="w-28 sm:w-32 md:w-40 h-auto mx-auto mb-4 sm:mb-6 flex items-center justify-center">
             <img 
-              src={amsLogo} 
-              alt="AMS Logo"
+              src={appLogo} 
+              alt={`${appName} Logo`}
               className="w-full h-full object-contain"
             />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Welcome Back</h1>
-          <p className="text-sm sm:text-base text-gray-600">Sign in to access AMS Showcase</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Welcome Back</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Sign in to access {appDescription}</p>
         </div>
 
         {/* Login Form */}
@@ -158,13 +162,13 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-500 mt-6 space-y-2">
+        <div className="text-center text-xs text-muted-foreground mt-6 space-y-2">
           <p>© 2024 All Rights Reserved | Leapmile Logistics Pvt.Ltd</p>
           <a 
             href="https://leapmile.com/terms-and-privacy" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 hover:underline"
+            className="text-primary hover:text-primary/80 hover:underline"
           >
             Terms and Condition & Privacy Policy / Cookies Policy
           </a>

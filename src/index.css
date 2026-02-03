@@ -5,7 +5,9 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* AMS UI Theme (Teal) - Original theme */
+  :root.skin-ams,
+  :root:not(.skin-leapmile):not(.skin-ams) {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -31,9 +33,59 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    
+    /* Status colors */
+    --success: 142 40% 46%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 70% 50%;
+    --warning-foreground: 0 0% 100%;
   }
 
-  .dark {
+  /* Leapmile UI Theme (Purple) - New theme */
+  :root.skin-leapmile {
+    --background: 0 0% 100%;
+    --foreground: 263 25% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 263 25% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 263 25% 14%;
+    --primary: 260 61% 28%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 261 40% 66%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 261 50% 93%;
+    --muted-foreground: 259 20% 49%;
+    --accent: 261 50% 93%;
+    --accent-foreground: 260 61% 28%;
+    --destructive: 351 50% 54%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 261 30% 85%;
+    --input: 261 30% 85%;
+    --ring: 260 61% 28%;
+    --radius: 0.5rem;
+    --chart-1: 260 61% 28%;
+    --chart-2: 261 40% 66%;
+    --chart-3: 142 40% 46%;
+    --chart-4: 43 70% 50%;
+    --chart-5: 351 50% 54%;
+    
+    /* Status colors */
+    --success: 142 40% 46%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 70% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Leapmile specific colors */
+    --leapmile-dark-purple: 260 65% 23%;
+    --leapmile-light-lavender: 261 50% 93%;
+    --leapmile-light-gray: 261 30% 97%;
+    --leapmile-border-gray: 261 30% 85%;
+    --leapmile-primary-text: 263 25% 14%;
+    --leapmile-secondary-text: 259 20% 49%;
+  }
+
+  /* AMS Dark Mode */
+  .skin-ams.dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -58,6 +110,34 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+  }
+
+  /* Leapmile Dark Mode */
+  .skin-leapmile.dark {
+    --background: 263 25% 8%;
+    --foreground: 0 0% 98%;
+    --card: 263 25% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 263 25% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 261 50% 93%;
+    --primary-foreground: 260 61% 28%;
+    --secondary: 260 30% 20%;
+    --secondary-foreground: 261 50% 93%;
+    --muted: 260 30% 20%;
+    --muted-foreground: 261 30% 65%;
+    --accent: 260 30% 20%;
+    --accent-foreground: 261 50% 93%;
+    --destructive: 351 50% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 260 20% 20%;
+    --input: 260 20% 20%;
+    --ring: 261 50% 93%;
+    --chart-1: 260 50% 50%;
+    --chart-2: 261 40% 55%;
+    --chart-3: 142 40% 45%;
+    --chart-4: 43 70% 50%;
+    --chart-5: 351 50% 50%;
   }
 }
 
@@ -93,5 +173,33 @@
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.7);
+  }
+
+  /* Leapmile skin specific scrollbar */
+  .skin-leapmile .scrollbar-thin {
+    scrollbar-color: hsl(261 40% 66% / 0.5) transparent;
+  }
+
+  .skin-leapmile .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(261 40% 66% / 0.5);
+  }
+
+  .skin-leapmile .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(261 40% 66% / 0.7);
+  }
+}
+
+/* Theme-specific gradient backgrounds */
+@layer utilities {
+  .bg-gradient-skin {
+    @apply bg-gradient-to-br;
+  }
+  
+  .skin-ams .bg-gradient-skin {
+    @apply from-slate-50 to-teal-50;
+  }
+  
+  .skin-leapmile .bg-gradient-skin {
+    @apply from-slate-50 to-purple-50;
   }
 }
