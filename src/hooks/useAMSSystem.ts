@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Part, RobotOperation, Station } from '@/types/ams';
 import { toast } from '@/hooks/use-toast';
-import gearAssembly from '@/assets/parts/gear-assembly.jpg';
 import { useRobotOperations } from './useRobotOperations';
 import { useStationManager } from './useStationManager';
 import { useStorageManager } from './useStorageManager';
@@ -58,7 +57,7 @@ export const useAMSSystem = () => {
         type: 'API Part',
         color: 'blue',
         description: `Tray ID: ${trayId}`,
-        imageUrl: gearAssembly
+        imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=100&h=100&fit=crop'
       },
       station: {
         id: 'api-station',
