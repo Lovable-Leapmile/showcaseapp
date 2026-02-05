@@ -98,20 +98,16 @@ const PartItem = ({
             />
           </div>
         )}
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden flex-shrink-0 bg-muted">
           <img 
             src={part.imageUrl} 
             alt={part.name}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = '/src/assets/no-data-found.jpg';
-            }}
           />
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-xs sm:text-sm truncate">{part.name}</div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {displayDescription}
             {shouldTruncateDescription && (
               <button
